@@ -4,7 +4,7 @@
     - Native Javascript functions
     author: dreamwave
 
-    Version : 3.1.0
+    Version : 3.1.1
 
 ************************************/
 /**
@@ -325,7 +325,7 @@ class radix {
 
                 let scrollHint = document.createElement('div');
                 scrollHint.classList.add('rdx-scroll-hint');
-                scrollHint.appendChild(self.svg.arrowLR);
+                scrollHint.appendChild(self.svg.arrowLR.cloneNode(true));
                 document.addEventListener('mousemove', toggleHint, false);
                 document.addEventListener('touchmove', toggleHint, false);
 
