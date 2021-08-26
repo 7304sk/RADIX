@@ -25,7 +25,6 @@ preset variables
 /*
 固定ページ化用
 body {min-width: var(--contentWidth)}
-.centering {width: var(--contentWidth);max-width: var(--contentWidth)}
 */
 
 /* OVERWRITE end */
