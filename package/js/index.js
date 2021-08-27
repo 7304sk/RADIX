@@ -3,7 +3,7 @@ window.FontAwesomeConfig = {
     searchPseudoElements: true
 };
 
-// Radix css の初期化、追加スクリプト
+// Radix js の初期化、追加スクリプト
 window.addEventListener('DOMContentLoaded', () => {
     let myRadix = new radix({
         toggleNav: {
