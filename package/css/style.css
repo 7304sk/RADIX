@@ -17,6 +17,7 @@ preset variables
     /* width preset */
     --gutter: 1.3rem;
     --gap: 3rem;
+    --spacing: 1rem;
     --contentWidth: 1000px;
 }
 

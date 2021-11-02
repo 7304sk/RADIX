@@ -5,21 +5,28 @@
     - The Common CSS Library for Responsive Site.
     author: dreamwave
 
-    Version : 3.1.1
+    Version : 3.1.2
 
 ************************************/
+:root {
+    --fontSize: 16px;
+    --linkColor: #3562a0;
+    --textColor: #333;
+    --gutter: 1.3rem; /* spacing of paragraph. */
+    --gap: 3rem; /* spacing of sections. */
+    --spacing: 1rem; /* minimum spacing between content area and viewport. */
+    --contentWidth: 1000px;
+}
 
 /* reset default style */
+*:where(:not(iframe, canvas, img, svg, video):not(svg *)) {
+    all: unset;
+    display: revert;
+}
 *,
 *:before,
 *:after {
-    margin: 0;
-    padding: 0;
-    outline: 0;
     box-sizing: border-box;
-    font: inherit;
-    vertical-align: baseline;
-    background: transparent
 }
 
 [hidden] {
@@ -28,11 +35,11 @@
 
 /* font setting */
 html {
+    color: var(--textColor);
     font-family: 'Noto Sans JP', Arial, "Hiragino Kaku Gothic Pro", Meiryo, "MS PGothic", sans-serif;
     font-size: var(--fontSize);
-    color: var(--textColor);
-    line-height: 1.4;
-    font-weight: 400
+    font-weight: 400;
+    line-height: 1.4
 }
 
 p {
@@ -133,12 +140,6 @@ table {
     width: max-content;
     border-collapse: collapse;
     border-spacing: 0
-}
-
-button,
-input {
-    border: none;
-    background: transparent
 }
 
 button {
@@ -252,7 +253,7 @@ main p,
 
 .fb-brackets {
     display: grid;
-    grid-template-columns: 1rem 1fr min(calc(100% - 2rem), var(--contentWidth)) 1fr 1rem;
+    grid-template-columns: var(--spacing) 1fr min(calc(100% - var(--spacing)), var(--contentWidth)) 1fr var(--spacing);
     width: 100%;
 }
 
