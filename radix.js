@@ -2,9 +2,9 @@
 
     RADIX
     - Native Javascript functions
-    author: dreamwave
+    author: shoalwave
 
-    Version : 3.1.2
+    Version : 3.1.3
 
 ************************************/
 /**
