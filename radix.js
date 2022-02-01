@@ -103,6 +103,7 @@ class radix {
     /**
      * DOMロード時に実行し初期化する関数
      */
+    navOpen = false;
     init() {
         const self = this;
         self.DOM_ROOTS = document.querySelectorAll('html,body');
@@ -153,7 +154,7 @@ class radix {
                         link.setAttribute('target', '_blank');
                         link.classList.add('rdx-pdf');
                     } else if (fullHref.match(/^http/)) {
-                        host = location.hostname;
+                        host = window.location.hostname;
                         if (host === '' || fullHref.indexOf(host) < 0) {
                             link.setAttribute('target', '_blank');
                             link.classList.add('rdx-extlink');
