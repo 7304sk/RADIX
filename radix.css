@@ -5,7 +5,7 @@
     - The Common CSS Library for Responsive Site.
     author: shoalwave
 
-    Version : 3.1.3
+    Version : 3.1.4
 
 ************************************/
 :root {
@@ -63,7 +63,8 @@ main {
 /* formatting init style */
 a {
     color: var(--linkColor);
-    text-decoration: none
+    text-decoration: none;
+    cursor: pointer
 }
 
 a:hover {
@@ -254,6 +255,7 @@ main p,
 .fb-brackets {
     display: grid;
     grid-template-columns: var(--spacing) 1fr min(calc(100% - 2 * var(--spacing)), var(--contentWidth)) 1fr var(--spacing);
+    grid-auto-rows: max-content;
     width: 100%;
 }
 
@@ -537,4 +539,8 @@ main p,
     max-height: 2200px;
     cursor: default;
     transform-origin: top left;
+}
+
+.rdx-modal-source {
+    cursor: pointer;
 }
