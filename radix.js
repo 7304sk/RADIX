@@ -4,7 +4,7 @@
     - Native Javascript functions
     author: shoalwave
 
-    Version : 3.1.4
+    Version : 3.1.5
 
 ************************************/
 /**
@@ -85,7 +85,7 @@ class radix {
                 active: true,
                 selector: '.rdx-scroll-appear',
                 delay: 200,
-                reset: false,
+                reset: true,
                 class: 'active'
             }
         }
