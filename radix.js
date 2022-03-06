@@ -4,7 +4,7 @@
     - Native Javascript functions
     author: shoalwave
 
-    Version : 3.1.5
+    Version : 3.1.6
 
 ************************************/
 /**
@@ -71,7 +71,8 @@ class radix {
             flexFix: {
                 active: true,
                 selector: '.rdx-flex-fix',
-                inherit: false
+                inherit: false,
+                min: 0
             },
             modal: {
                 active: true,
@@ -285,9 +286,9 @@ class radix {
         // Toggle menu
         if (self.option.toggleNav.active && self.option.toggleNav.trigger !== '' && self.option.toggleNav.target !== '') {
             self.navOpen = false;
-            let toggleTrigger = document.querySelector(self.option.toggleNav.trigger);
-            toggleTrigger.addEventListener('click', () => {
-                self.toggleNav();
+            let toggleTrigger = document.querySelectorAll(self.option.toggleNav.trigger);
+            toggleTrigger.forEach(t => {
+                t.addEventListener('click', () => { self.toggleNav(); });
             });
         }
         // drag scroll
@@ -364,7 +365,8 @@ class radix {
                     let childArr = Array.from(e.children);
                     let dummyChild = childArr[0].cloneNode(inherit);
                     dummyChild.classList.add('rdx-dummy-item');
-                    for (let i = 0; i < childArr.length; i++) {
+                    let count = self.option.flexFix.min > childArr.length ? self.option.flexFix.min: childArr.length;
+                    for (let i = 0; i < count; i++) {
                         let dummyClone = dummyChild.cloneNode(inherit);
                         e.appendChild(dummyClone);
                     }
@@ -638,8 +640,8 @@ class radix {
      */
     toggleNav(mode) {
         const self = this;
-        let toggleTrigger = document.querySelector(self.option.toggleNav.trigger);
-        let toggleTarget = document.querySelector(self.option.toggleNav.target);
+        let toggleTrigger = document.querySelectorAll(self.option.toggleNav.trigger);
+        let toggleTarget = document.querySelectorAll(self.option.toggleNav.target);
 
         if (mode === undefined) {
             if (self.navOpen) {
@@ -647,15 +649,23 @@ class radix {
                     self.preventScroll(false);
                 }
                 self.navOpen = false;
-                toggleTrigger.classList.remove(self.option.toggleNav.class);
-                toggleTarget.classList.remove(self.option.toggleNav.class);
+                toggleTrigger.forEach(t => {
+                        t.classList.remove(self.option.toggleNav.class);
+                });
+                toggleTarget.forEach(t => {
+                        t.classList.remove(self.option.toggleNav.class);
+                });
             } else {
                 if (self.option.toggleNav.preventScroll) {
                     self.preventScroll(true);
                 }
                 self.navOpen = true;
-                toggleTrigger.classList.add(self.option.toggleNav.class);
-                toggleTarget.classList.add(self.option.toggleNav.class);
+                toggleTrigger.forEach(t => {
+                        t.classList.add(self.option.toggleNav.class);
+                });
+                toggleTarget.forEach(t => {
+                        t.classList.add(self.option.toggleNav.class);
+                });
             }
         } else {
             if (mode === true || mode === 'close') {
@@ -663,15 +673,23 @@ class radix {
                     self.preventScroll(false);
                 }
                 self.navOpen = false;
-                toggleTrigger.classList.remove(self.option.toggleNav.class);
-                toggleTarget.classList.remove(self.option.toggleNav.class);
+                toggleTrigger.forEach(t => {
+                        t.classList.remove(self.option.toggleNav.class);
+                });
+                toggleTarget.forEach(t => {
+                        t.classList.remove(self.option.toggleNav.class);
+                });
             } else if (mode === false || mode === 'open') {
                 if (self.option.toggleNav.preventScroll) {
                     self.preventScroll(true);
                 }
                 self.navOpen = true;
-                toggleTrigger.classList.add(self.option.toggleNav.class);
-                toggleTarget.classList.add(self.option.toggleNav.class);
+                toggleTrigger.forEach(t => {
+                        t.classList.add(self.option.toggleNav.class);
+                });
+                toggleTarget.forEach(t => {
+                        t.classList.add(self.option.toggleNav.class);
+                });
             }
         }
     };
