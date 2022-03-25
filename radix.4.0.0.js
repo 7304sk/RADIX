@@ -4,7 +4,7 @@
     - Native Javascript functions
     author: shoalwave
 
-    Version : 3.1.6
+    Version : 4.0.0
 
 ************************************/
 /**
@@ -30,7 +30,7 @@ class radix {
      * @constructor
      */
     constructor(option, mode) {
-        let defOption = {
+        const defOption = {
             timeFrame: 10,
             preload: {
                 active: false,
@@ -54,43 +54,39 @@ class radix {
             },
             svg: {
                 active: true,
-                hamburger: '.rsi-hamburger',
-                angleTop: '.rsi-angleTop',
-                angleRight: '.rsi-angleRight',
-                angleBottom: '.rsi-angleBottom',
-                angleLeft: '.rsi-angleLeft',
-                cross: '.rsi-cross',
-                arrowLR: '.rsi-arrowLR',
-                arrowTB: '.rsi-arrowTB',
+                selector: '.radix-icon'
             },
             dragScroll: {
                 active: true,
-                selector: '.rdx-drag-scroll',
+                selector: '.radix-drag',
                 hint: true
             },
             flexFix: {
                 active: true,
-                selector: '.rdx-flex-fix',
+                selector: '.radix-flexfix',
                 inherit: false,
                 min: 0
             },
             modal: {
                 active: true,
-                resizeSpeed: 300,
+                selector: '.radix-modal',
+                color: 'black',
+                resizeDuration: 300,
                 resizeEasing: 'easeInOutBack',
                 fit: true,
+                magnifier: true,
                 enlargeText: '拡大',
                 shrinkText: '縮小'
             },
             scrollAppear: {
                 active: true,
-                selector: '.rdx-scroll-appear',
+                selector: '.radix-appear',
                 delay: 200,
                 reset: true,
                 class: 'active'
             }
         }
-        let argFlg = this.typeJudge(option) == 'object' ? true : false;
+        const argFlg = this.typeJudge(option) == 'object' ? true : false;
         Object.keys(defOption).forEach(key => {
             if (mode === false && key != 'timeFrame') {
                 defOption[key].active = false;
@@ -101,62 +97,61 @@ class radix {
         });
         this.option = defOption;
     }
+    events = {
+        beforeScroll: new CustomEvent('beforeScroll'),
+        afterScroll: new CustomEvent('afterScroll'),
+        beforeNavOpen: new CustomEvent('beforeNavOpen'),
+        afterNavOpen: new CustomEvent('afterNavOpen'),
+        beforeNavClose: new CustomEvent('beforeNavClose'),
+        afterNavClose: new CustomEvent('afterNavClose'),
+        beforeModalOpen: new CustomEvent('beforeModalOpen'),
+        afterModalOpen: new CustomEvent('afterModalOpen'),
+        beforeModalClose: new CustomEvent('beforeModalClose'),
+        afterModalClose: new CustomEvent('afterModalClose'),
+    }
     /**
      * DOMロード時に実行し初期化する関数
      */
     navOpen = false;
+    modalOpen = false;
     init() {
         const self = this;
         self.DOM_ROOTS = document.querySelectorAll('html,body');
         // Smooth scroll and Auto fill target blank
         if (self.option.smoothScroll.active || self.option.autoTargetBlank.active) {
-            let links = document.querySelectorAll('a');
+            const links = document.querySelectorAll('a');
+            let scrollFrom = null;
+            let scrollTo = null;
             links.forEach(link => {
                 if (!link.hasAttribute('href') || link.getAttribute('href').length == 0) {
                     link.setAttribute('href', '#');
                 }
-                let scrollPos = {
-                    from: null,
-                    to: null
-                };
+                let linkHref = link.getAttribute('href');
                 // Smooth scroll
                 if (self.option.smoothScroll.active) {
-                    let firstWord = link.getAttribute('href').substr(0, 1);
-                    let href = link.getAttribute('href').substr(1);
-                    if (link.getAttribute('href') === '#') {
+                    let firstLetter = linkHref.substring(0, 1);
+                    let hrefTarget = linkHref.substring(1);
+                    if (firstLetter === '#') {
                         link.addEventListener('click', event => {
                             event.preventDefault();
-                            let target = document.body;
-                            let clientRect = target.getBoundingClientRect();
-                            let uniqueEasing = link.getAttribute('rdx-smooth-scroll-easing');
-                            let uniqueDuration = link.getAttribute('rdx-smooth-scroll-duration');
-                            scrollPos.from = window.scrollY;
-                            scrollPos.to = window.scrollY + clientRect.top;
-                            self.smoothScroll(scrollPos, uniqueDuration, uniqueEasing);
-                        });
-                    } else if (firstWord === '#' && href.length > 0) {
-                        link.addEventListener('click', event => {
-                            event.preventDefault();
-                            let target = document.getElementById(href);
-                            let clientRect = target.getBoundingClientRect();
-                            let uniqueEasing = link.getAttribute('rdx-smooth-scroll-easing');
-                            let uniqueDuration = link.getAttribute('rdx-smooth-scroll-duration');
-                            scrollPos.from = window.scrollY;
-                            scrollPos.to = window.scrollY + clientRect.top;
-                            self.smoothScroll(scrollPos, uniqueDuration, uniqueEasing);
+                            const target = hrefTarget.length > 0 ? document.getElementById(hrefTarget) : document.body;
+                            const uniqueEasing = link.dataset.scrollEasing;
+                            const uniqueDuration = link.dataset.scrollDuration;
+                            scrollFrom = window.scrollY;
+                            scrollTo = window.scrollY + target.getBoundingClientRect().top;
+                            self.smoothScroll(scrollFrom, scrollTo, uniqueDuration, uniqueEasing);
                         });
                     }
                 }
                 // Auto fill target blank
                 if (self.option.autoTargetBlank.active) {
-                    let fullHref = link.getAttribute('href');
                     let host = null;
-                    if (fullHref.match(/.+\.pdf$/)) {
+                    if (linkHref.match(/.+\.pdf$/)) {
                         link.setAttribute('target', '_blank');
                         link.classList.add('rdx-pdf');
-                    } else if (fullHref.match(/^http/)) {
+                    } else if (linkHref.match(/^http/)) {
                         host = window.location.hostname;
-                        if (host === '' || fullHref.indexOf(host) < 0) {
+                        if (host === '' || linkHref.indexOf(host) < 0) {
                             link.setAttribute('target', '_blank');
                             link.classList.add('rdx-extlink');
                         }
@@ -196,18 +191,20 @@ class radix {
                 self.svg.hamburger = hmbgr;
             }
             { // angle top
-                let agl_t = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                let agl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                agl.classList.add('rdx-icon-angletop');
                 let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-                agl_t.setAttribute('viewBox', '0 0 100 100');
-                agl_t.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                agl.setAttribute('viewBox', '0 0 100 100');
+                agl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
                 polygon.setAttribute('points', '50,19 97,66 84,79 50,45 16,79 3,66');
                 polygon.setAttribute('fill', 'currentColor');
                 polygon.setAttribute('stroke', 'none');
-                agl_t.appendChild(polygon);
-                self.svg.angleTop = agl_t;
+                agl.appendChild(polygon);
+                self.svg.angleTop = agl;
             }
             { // angle right
                 let agl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                agl.classList.add('rdx-icon-angleright');
                 let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
                 agl.setAttribute('viewBox', '0 0 100 100');
                 agl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -219,6 +216,7 @@ class radix {
             }
             { // angle bottom
                 let agl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                agl.classList.add('rdx-icon-anglebottom');
                 let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
                 agl.setAttribute('viewBox', '0 0 100 100');
                 agl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -230,6 +228,7 @@ class radix {
             }
             { // angle left
                 let agl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                agl.classList.add('rdx-icon-angleleft');
                 let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
                 agl.setAttribute('viewBox', '0 0 100 100');
                 agl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -241,6 +240,7 @@ class radix {
             }
             { // arrow LR
                 let out = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                out.classList.add('rdx-icon-arrowlr');
                 let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
                 out.setAttribute('viewBox', '0 0 100 100');
                 out.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -254,6 +254,7 @@ class radix {
             }
             { // arrow TB
                 let out = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                out.classList.add('rdx-icon-arrowtb');
                 let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
                 out.setAttribute('viewBox', '0 0 100 100');
                 out.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -267,6 +268,7 @@ class radix {
             }
             { // cross
                 let out = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                out.classList.add('rdx-icon-cross');
                 let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
                 out.setAttribute('viewBox', '0 0 100 100');
                 out.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -277,11 +279,16 @@ class radix {
                 self.svg.cross = out;
             }
             // svg insert
-            Object.keys(self.option.svg).forEach(key => {
-                if (key !== 'active' && self.option.svg[key] !== '') {
-                    self.appendSvg(key, self.option.svg[key]);
-                }
-            });
+            let icons = document.querySelectorAll('.rdx-icons');
+            if (icons) {
+                icons.forEach(icon => {
+                    let innerText = icon.innerText;
+                    if (Object.keys(self.option.svg).includes(innerText)) {
+                        icon.innerHTML = '';
+                        icon.appendChild(self.svg[innerText].cloneNode(true));
+                    }
+                });
+            }
         }
         // Toggle menu
         if (self.option.toggleNav.active && self.option.toggleNav.trigger !== '' && self.option.toggleNav.target !== '') {
@@ -375,7 +382,7 @@ class radix {
         }
         // modal
         if (self.option.modal.active) {
-            let modals = document.querySelectorAll('[rdx-modal-target],[rdx-modal-self]');
+            let modals = document.querySelectorAll(self.option.modal.selector);
             if (modals.length > 0) {
                 self.modalParts = {
                     viewport: document.createElement('div'),
@@ -389,6 +396,7 @@ class radix {
                     shrink: document.createElement('div'),
                     scaleDisp: document.createElement('div'),
                     scale: self.option.modal.defaultScale,
+                    scaleStep: [0.2, 0.4, 0.6, 0.8, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5],
                     size: {
                         width: 0,
                         height: 0
@@ -397,6 +405,7 @@ class radix {
                     easing: self.option.modal.resizeEasing
                 }
                 self.modalParts.viewport.classList.add('rdx-modal-viewport');
+                self.modalParts.viewport.classList.add(self.option.modal.color);
                 self.modalParts.area.classList.add('rdx-modal-area');
                 self.modalParts.wrapper.classList.add('rdx-modal-wrapper');
                 self.modalParts.content.classList.add('rdx-modal-content');
@@ -405,7 +414,6 @@ class radix {
                 self.modalParts.viewport.appendChild(self.modalParts.area);
                 self.modalParts.area.appendChild(self.modalParts.wrapper);
                 self.modalParts.wrapper.appendChild(self.modalParts.content);
-
                 self.modalParts.magnifier.classList.add('rdx-modal-magnifier');
                 self.modalParts.enlarge.classList.add('rdx-modal-enlarge');
                 self.modalParts.enlarge.innerHTML = self.option.modal.enlargeText;
@@ -416,106 +424,9 @@ class radix {
                 self.modalParts.magnifier.appendChild(self.modalParts.scaleDisp);
                 self.modalParts.magnifier.appendChild(self.modalParts.enlarge);
                 self.modalParts.magnifier.appendChild(self.modalParts.shrink);
-
                 self.modalParts.closeButton.classList.add('rdx-modal-close');
                 self.modalParts.toggles.appendChild(self.modalParts.closeButton);
-
                 document.body.appendChild(self.modalParts.viewport);
-
-                modals.forEach(modal => {
-                    let targets = document.querySelectorAll(modal.getAttribute('rdx-modal-target'));
-                    targets.forEach(target => {
-                        target.classList.add('rdx-modal-source');
-                    });
-                    if (modal.hasAttribute('rdx-modal-self')) {
-                        modal.classList.add('rdx-modal-source');
-                    }
-                    modal.addEventListener('click', event => {
-                        event.preventDefault();
-                        modalOpen(modal);
-                        let innerModals = self.modalParts.content.querySelectorAll('[rdx-modal-target],[rdx-modal-self]');
-                        innerModals.forEach(innerModal => {
-                            innerModal.addEventListener('click', v => {
-                                v.preventDefault();
-                                modalOpen(innerModal);
-                            });
-                        });
-                    });
-                });
-                let modalOpen = modal => {
-                    self.modalParts.content.innerHTML = '';
-                    let targets = document.querySelectorAll(modal.getAttribute('rdx-modal-target'));
-                    if (modal.hasAttribute('rdx-modal-self')) {
-                        let modalClone = modal.cloneNode(true);
-                        modalClone.removeAttribute('rdx-modal-self');
-                        modalClone.removeAttribute('rdx-modal-target');
-                        modalClone.classList.remove('rdx-modal-source');
-                        modalClone.classList.add('rdx-modal-target');
-                        self.modalParts.content.appendChild(modalClone);
-                    } else if (modal.hasAttribute('rdx-modal-target')) {
-                        targets.forEach(target => {
-                            let modalClone = target.cloneNode(true);
-                            modalClone.removeAttribute('rdx-modal-self');
-                            modalClone.removeAttribute('rdx-modal-target');
-                            modalClone.classList.remove('rdx-modal-source');
-                            modalClone.classList.add('rdx-modal-target');
-                            self.modalParts.content.appendChild(modalClone);
-                        });
-                    }
-
-                    self.preventScroll(true);
-                    self.modalParts.magnifier.style.display = modal.hasAttribute('rdx-modal-resize') ? 'flex' : 'none';
-
-                    self.modalParts.speed = modal.hasAttribute('rdx-modal-resize-speed') ? modal.getAttribute('rdx-modal-resize-speed') : self.modalParts.speed = self.option.modal.resizeSpeed;
-
-                    self.modalParts.easing = modal.hasAttribute('rdx-modal-resize-easing') ? modal.getAttribute('rdx-modal-resize-easing') : self.modalParts.easing = self.option.modal.resizeEasing;
-
-                    self.modalParts.size = {
-                        width: self.modalParts.content.offsetWidth,
-                        height: self.modalParts.content.offsetHeight
-                    };
-
-                    let defaultScale = 1;
-                    if (modal.hasAttribute('rdx-modal-scale')) {
-                        defaultScale = self.floatRound(modal.getAttribute('rdx-modal-scale'), 1);
-                    } else if ((self.option.modal.fit === true && modal.getAttribute('rdx-modal-fit') !== false) || modal.getAttribute('rdx-modal-fit') === true) {
-                        let scales = [0.2, 0.4, 0.6, 0.8, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
-                        let areaHeight = self.modalParts.area.clientHeight;
-                        let areaWidth = self.modalParts.area.clientWidth;
-                        defaultScale = scales[0];
-                        for (let i = 0; i < scales.length; i++) {
-                            if (self.modalParts.size.width * scales[i] > areaWidth || self.modalParts.size.height * scales[i] > areaHeight) {
-                                break;
-                            }
-                            defaultScale = scales[i];
-                        }
-                    }
-                    self.modalParts.scale = defaultScale;
-
-                    self.modalParts.content.style.transform = 'scale(' + defaultScale + ')';
-                    self.modalParts.wrapper.style.height = 'min(' + self.floatCeil(self.modalParts.size.height * defaultScale, 0) + 'px, 100%)';
-                    self.modalParts.wrapper.style.width = 'min(' + self.floatCeil(self.modalParts.size.width * defaultScale, 0) + 'px, 100%)';
-
-                    self.modalParts.viewport.classList.add('active');
-                    self.modalParts.scaleDisp.innerHTML = defaultScale + 'x';
-                };
-
-                let modalClose = () => {
-                    self.modalParts.viewport.classList.remove('active');
-                    self.modalParts.content.innerHTML = '';
-                    self.preventScroll(false);
-                    self.modalParts.content.style = '';
-                    self.modalParts.wrapper.style = '';
-                };
-                self.modalParts.viewport.addEventListener('click', event => {
-                    let clicked = event.target;
-                    if (!clicked.getAttribute('rdx-modal-self') && !clicked.getAttribute('rdx-modal-target')) {
-                        if (clicked.closest('.rdx-modal-content') === null && clicked.closest('.rdx-modal-toggles') === null) {
-                            modalClose();
-                        }
-                    }
-                }, false);
-                self.modalParts.closeButton.addEventListener('click', modalClose, false);
 
                 let aftScale = 1;
                 self.modalParts.enlarge.addEventListener('click', event => {
@@ -542,19 +453,56 @@ class radix {
                     self.modalResize(aftScale);
                     self.modalParts.scale = aftScale;
                 });
+
+                modals.forEach(modal => {
+                    let targets = document.querySelectorAll(modal.dataset.modalTarget);
+                    if (targets) {
+                        targets.forEach(target => {
+                            target.classList.add('rdx-modal-source');
+                        });
+                    }
+                    if (modal.dataset.modalTarget === null) {
+                        modal.classList.add('rdx-modal-source');
+                        targets = [modal];
+                    }
+                    modal.addEventListener('click', event => {
+                        event.preventDefault();
+                        let scale = modal.dataset.modalScale === null ? null : modal.dataset.modalScale;
+                        self.modalOpen(targets, modal.dataset.modalDuration, modal.dataset.modalEasing, scale);
+                        let innerModals = self.modalParts.content.querySelectorAll(self.option.modal.selector);
+                        innerModals.forEach(innerModal => {
+                            innerModal.addEventListener('click', v => {
+                                v.preventDefault();
+                                let innerTarget = innerModal.dataset.modalTarget === null ? [modal] : document.querySelectorAll(innerModal.dataset.modalTarget);
+                                scale = innerModal.dataset.modalScale === null ? null : innerModal.dataset.modalScale;
+                                self.modalOpen(innerTarget, innerModal.dataset.modalDuration, innerModal.dataset.modalEasing, scale);
+                            });
+                        });
+                    });
+                });
+
+                self.modalParts.viewport.addEventListener('click', event => {
+                    let clicked = event.target;
+                    if (!clicked.classList.contains('rdx-modal-item')) {
+                        if (clicked.closest('.rdx-modal-content') === null && clicked.closest('.rdx-modal-toggles') === null) {
+                            self.modalClose();
+                        }
+                    }
+                }, false);
+                self.modalParts.closeButton.addEventListener('click', self.modalClose(), false);
             }
         }
         // scroll appear
         if (self.option.scrollAppear.active) {
-            let appearItems = document.querySelectorAll(self.option.scrollAppear.selector);
+            const appearItems = document.querySelectorAll(self.option.scrollAppear.selector);
             if (appearItems.length > 0) {
                 window.addEventListener('scroll', () => {
                     let windowHeight = window.innerHeight;
                     appearItems.forEach(appearItem => {
-                        let resetFlg = appearItem.getAttribute('rdx-scroll-appear-reset') === null ? self.option.scrollAppear.reset : appearItem.getAttribute('rdx-scroll-appear-reset');
-                        let activeClass = appearItem.getAttribute('rdx-scroll-appear-class') === null ? self.option.scrollAppear.class : appearItem.getAttribute('rdx-scroll-appear-class');
-                        let modeNum = appearItem.getAttribute('rdx-scroll-appear-fixed');
-                        let delay = appearItem.getAttribute('rdx-scroll-appear-delay') === null ? self.option.scrollAppear.delay : appearItem.getAttribute('rdx-scroll-appear-delay');
+                        let resetFlg = appearItem.dataset.appearReset === null ? self.option.scrollAppear.reset : appearItem.dataset.appearReset;
+                        let activeClass = appearItem.dataset.appearClass === null ? self.option.scrollAppear.class : appearItem.dataset.appearClass;
+                        let modeNum = appearItem.dataset.appearFixed === null ? null : appearItem.dataset.appearFixed;
+                        let delay = appearItem.dataset.appearDelay === null ? self.option.scrollAppear.delay : appearItem.dataset.appearDelay;
 
                         if (modeNum === null) {
                             let itemRect = appearItem.getBoundingClientRect();
@@ -586,40 +534,43 @@ class radix {
         // preload display
         if (self.option.preload.active && self.option.preload.selector.length > 0) {
             let preloader = document.querySelector(self.option.preload.selector);
-            if (preloader) {
-                setTimeout(() => {
-                    preloader.classList.add('hide');
-                }, self.option.preload.minload);
-            }
+            window.addEventListener('load', () => {
+                if (preloader) {
+                    setTimeout(() => {
+                        preloader.classList.add('hide');
+                    }, self.option.preload.minload);
+                }
+            });
         }
     };
     /**
      * スムーススクロール
      * @param {object} scrollPos スクロールの始点・終点を格納した連想配列
      */
-    smoothScroll(scrollPos, uniqueDuration, uniqueEasing) {
+    smoothScroll(scrollFrom, scrollTo, uniqueDuration, uniqueEasing) {
         const self = this;
-        let duration = uniqueDuration === null ? self.option.smoothScroll.duration : uniqueDuration;
-        let frame = self.option.timeFrame;
-        let posFrom = scrollPos.from;
-        let posTo = scrollPos.to < 0 ? 0 : scrollPos.to;
-        let changeVal = posTo - posFrom;
-        let easingName = uniqueEasing === null ? self.option.smoothScroll.easing : uniqueEasing;
-        let easing = self.getEasing(easingName);
+        scrollTo = scrollTo < 0 ? 0 : scrollTo;
+        const changeVal = scrollTo - scrollFrom;
+        const duration = uniqueDuration === null ? self.option.smoothScroll.duration : uniqueDuration;
+        const easingName = uniqueEasing === null ? self.option.smoothScroll.easing : uniqueEasing;
+        const easing = self.getEasing(easingName);
         let cnt = 0;
         let timer = null;
 
+        self.dispatchEvent(self.events.beforeScroll);
+
         let moveAnimate = () => {
             cnt++;
-            let elapsedTime = cnt * frame;
-            let pos = easing(elapsedTime, posFrom, changeVal, duration);
+            let elapsedTime = cnt * self.option.timeFrame;
+            let pos = easing(elapsedTime, scrollFrom, changeVal, duration);
             window.scrollTo(0, pos);
             if (elapsedTime > duration) {
-                window.scrollTo(0, posTo);
+                window.scrollTo(0, scrollTo);
                 clearInterval(timer);
+                self.dispatchEvent(self.events.afterScroll);
             }
         }
-        timer = setInterval(moveAnimate, frame);
+        timer = setInterval(moveAnimate, self.option.timeFrame);
     };
     /**
      * ページスクロールのオンオフ
@@ -645,6 +596,7 @@ class radix {
 
         if (mode === undefined) {
             if (self.navOpen) {
+                self.dispatchEvent(self.events.beforeNavClose);
                 if (self.option.toggleNav.preventScroll) {
                     self.preventScroll(false);
                 }
@@ -655,7 +607,9 @@ class radix {
                 toggleTarget.forEach(t => {
                         t.classList.remove(self.option.toggleNav.class);
                 });
+                self.dispatchEvent(self.events.afterNavClose);
             } else {
+                self.dispatchEvent(self.events.beforeNavOpen);
                 if (self.option.toggleNav.preventScroll) {
                     self.preventScroll(true);
                 }
@@ -666,9 +620,11 @@ class radix {
                 toggleTarget.forEach(t => {
                         t.classList.add(self.option.toggleNav.class);
                 });
+                self.dispatchEvent(self.events.afterNavOpen);
             }
         } else {
             if (mode === true || mode === 'close') {
+                self.dispatchEvent(self.events.beforeNavClose);
                 if (self.option.toggleNav.preventScroll) {
                     self.preventScroll(false);
                 }
@@ -679,7 +635,9 @@ class radix {
                 toggleTarget.forEach(t => {
                         t.classList.remove(self.option.toggleNav.class);
                 });
+                self.dispatchEvent(self.events.afterNavClose);
             } else if (mode === false || mode === 'open') {
+                self.dispatchEvent(self.events.beforeNavOpen);
                 if (self.option.toggleNav.preventScroll) {
                     self.preventScroll(true);
                 }
@@ -690,30 +648,70 @@ class radix {
                 toggleTarget.forEach(t => {
                         t.classList.add(self.option.toggleNav.class);
                 });
+                self.dispatchEvent(self.events.afterNavOpen);
             }
         }
     };
-    /**
-     * SVG を要素に追加
-     * @param {string} svgType 追加する svg 名
-     * @param {string} target 置換対象の要素（CSS セレクタ）
-     */
-    appendSvg(svgType, target) {
-        let self = this;
-        let tarElms = document.querySelectorAll(target);
-        if (tarElms.length > 0 && self.svg[svgType] != undefined) {
-            tarElms.forEach(e => {
-                e.innerHTML = '';
-                e.appendChild(self.svg[svgType].cloneNode(true));
-            });
+    modalOpen(targets, duration, easing, scale) {
+        const self = this;
+        self.dispatchEvent(self.events.beforeModalOpen);
+
+        self.modalParts.content.innerHTML = '';
+        targets.forEach(target => {
+                let modalClone = target.cloneNode(true);
+                modalClone.classList.remove(self.option.modal.selector);
+                modalClone.classList.remove('rdx-modal-source');
+                modalClone.classList.add('rdx-modal-item');
+                self.modalParts.content.appendChild(modalClone);
+        });
+        self.preventScroll(true);
+
+        self.modalParts.magnifier.style.display = self.option.modal.magnifier ? 'flex' : 'none';
+        self.modalParts.duration = duration === null ? self.option.modal.resizeDuration : duration;
+        self.modalParts.easing = easing === null ? self.option.modal.resizeEasing : easing;
+        self.modalParts.size = {
+            width: self.modalParts.content.offsetWidth,
+            height: self.modalParts.content.offsetHeight
+        };
+        self.modalParts.scale = 1;
+        if (scale !== null) {
+            self.modalParts.scale = self.floatRound(scale, 1);
+        } else if (self.option.modal.fit === true) {
+            let areaHeight = self.modalParts.area.clientHeight;
+            let areaWidth = self.modalParts.area.clientWidth;
+            self.modalParts.scale = self.modalParts.scaleStep[0];
+            for (let i = 0; i < self.modalParts.scaleStep.length; i++) {
+                if (self.modalParts.size.width * self.modalParts.scaleStep[i] > areaWidth || self.modalParts.size.height * self.modalParts.scaleStep[i] > areaHeight) break;
+                self.modalParts.scale = self.modalParts.scaleStep[i];
+            }
         }
-    }
+
+        self.modalParts.content.style.transform = 'scale(' + self.modalParts.scale + ')';
+        self.modalParts.wrapper.style.height = 'min(' + self.floatCeil(self.modalParts.size.height * self.modalParts.scale, 0) + 'px, 100%)';
+        self.modalParts.wrapper.style.width = 'min(' + self.floatCeil(self.modalParts.size.width * self.modalParts.scale, 0) + 'px, 100%)';
+        self.modalParts.viewport.classList.add('active');
+        self.modalParts.scaleDisp.innerHTML = self.modalParts.scale + 'x';
+
+        self.modalOpen = true;
+        self.dispatchEvent(self.events.beforeModalOpen);
+    };
+    modalClose() {
+        const self = this;
+        self.dispatchEvent(self.events.beforeModalClose);
+        self.modalParts.viewport.classList.remove('active');
+        self.modalParts.content.innerHTML = '';
+        self.preventScroll(false);
+        self.modalParts.content.style = '';
+        self.modalParts.wrapper.style = '';
+        self.modalOpen = false;
+        self.dispatchEvent(self.events.afterModalClose);
+    };
     /**
      * モーダルウィンドウの拡縮
      * @param {number} aftScale 操作後の倍率
      */
-    modalResize(_aftScale) {
-        let self = this;
+    modalResize(aftScale) {
+        const self = this;
         let duration = self.option.modal.resizeSpeed;
         let frame = self.option.timeFrame;
         let cnt = 0;
@@ -722,7 +720,7 @@ class radix {
         let befScale = self.modalParts.scale;
         let befWidth = self.modalParts.size.width * befScale;
         let befHeight = self.modalParts.size.height * befScale;
-        let aftScale = self.floatRound(_aftScale, 1);
+        aftScale = self.floatRound(aftScale, 1);
         let aftWidth = self.modalParts.size.width * aftScale;
         let aftHeight = self.modalParts.size.height * aftScale;
         let difScale = aftScale - befScale;
@@ -787,35 +785,9 @@ class radix {
      * http://robertpenner.com/easing/
      * https://easings.net/
      *
-     * TERMS OF USE - EASING EQUATIONS
-     *
-     * Open source under the BSD License.
+     * Open source under the MIT License and the 3-Clause BSD License.
      *
      * Copyright © 2001 Robert Penner
-     * All rights reserved.
-     *
-     * Redistribution and use in source and binary forms, with or without modification,
-     * are permitted provided that the following conditions are met:
-     *
-     * Redistributions of source code must retain the above copyright notice, this list of
-     * conditions and the following disclaimer.
-     * Redistributions in binary form must reproduce the above copyright notice, this list
-     * of conditions and the following disclaimer in the documentation and/or other materials
-     * provided with the distribution.
-     *
-     * Neither the name of the author nor the names of contributors may be used to endorse
-     * or promote products derived from this software without specific prior written permission.
-     *
-     * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-     * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-     * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-     *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-     *  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-     *  GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
-     * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-     *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-     * OF THE POSSIBILITY OF SUCH DAMAGE.
-     *
      */
     /**
      * イージング関数を取得する関数
