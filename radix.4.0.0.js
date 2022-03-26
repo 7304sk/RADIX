@@ -1,10 +1,11 @@
 /************************************
 
     RADIX
-    - Native Javascript functions
-    author: shoalwave
+    - Version : 4.0.0
 
-    Version : 4.0.0
+    Copyright 2021 shoalwave and other contributors.
+    Released under the MIT License.
+    https://github.com/7304sk/RADIX/blob/main/LICENSE.txt
 
 ************************************/
 /**
@@ -13,10 +14,15 @@
  * @type class
  * @property {object}   option         オプション値を格納
  * @property {object}   modalParts     モーダルウィンドウ機能で生成しているエレメントノードたち
- * @property {boolean}  navOpen        ナビゲーション開閉を実行する関数
- * @property {function} init           ページロード時に実行する関数
+ * @property {object}   events         各操作に対して発火しているイベントフックたち
+ * @property {object}   icons          SVGアイコンの全ノード
+ * @property {boolean}  navState       ナビゲーションの開閉状態を保存
+ * @property {boolean}  modalState     モーダルウィンドウの開閉状態を保存
+ * @property {function} init           radixの初期化を行う関数
  * @property {function} toggleNav      ナビゲーション開閉を実行する関数
  * @property {function} smoothScroll   スムーススクロールを実行する関数
+ * @property {function} modalOpen      モーダルウィンドウを開く関数
+ * @property {function} modalClose     モーダルウィンドウを閉じる関数
  * @property {function} modalResize    モーダルウィンドウの拡縮をする関数
  * @property {function} floatRound     浮動小数点数の文字列変換関数
  * @property {function} floatCeil      浮動小数点数の文字列変換関数
@@ -35,7 +41,7 @@ class radix {
             preload: {
                 active: false,
                 selector: '',
-                minload: 200
+                delay: 200
             },
             smoothScroll: {
                 active: true,
@@ -52,7 +58,7 @@ class radix {
                 class: 'opened',
                 preventScroll: false
             },
-            svg: {
+            icons: {
                 active: true,
                 selector: '.radix-icon'
             },
@@ -64,19 +70,18 @@ class radix {
             flexFix: {
                 active: true,
                 selector: '.radix-flexfix',
-                inherit: false,
+                inherit: true,
                 min: 0
             },
             modal: {
                 active: true,
                 selector: '.radix-modal',
-                color: 'black',
+                color: 'white',
                 resizeDuration: 300,
                 resizeEasing: 'easeInOutBack',
-                fit: true,
-                magnifier: true,
-                enlargeText: '拡大',
-                shrinkText: '縮小'
+                scaleStep: [0.2, 0.4, 0.6, 0.8, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5],
+                fit: false,
+                magnify: true
             },
             scrollAppear: {
                 active: true,
@@ -112,8 +117,8 @@ class radix {
     /**
      * DOMロード時に実行し初期化する関数
      */
-    navOpen = false;
-    modalOpen = false;
+    navState = false;
+    modalState = false;
     init() {
         const self = this;
         self.DOM_ROOTS = document.querySelectorAll('html,body');
@@ -160,139 +165,141 @@ class radix {
             });
         }
         // SVG insert
-        if (self.option.svg.active) {
-            self.svg = {};
-            { // hamburger Menu
-                let hmbgr = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                let hmbgrLine1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                let hmbgrLine2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                let hmbgrLine3 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                hmbgr.setAttribute('viewBox', '0 0 50 50');
-                hmbgr.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-                hmbgr.classList.add('rdx-svg-hamburger');
-                hmbgrLine1.setAttribute('x1', 5);
-                hmbgrLine1.setAttribute('y1', 13);
-                hmbgrLine1.setAttribute('x2', 45);
-                hmbgrLine1.setAttribute('y2', 13);
-                hmbgrLine1.classList.add('bar1');
-                hmbgrLine2.setAttribute('x1', 5);
-                hmbgrLine2.setAttribute('y1', 25);
-                hmbgrLine2.setAttribute('x2', 45);
-                hmbgrLine2.setAttribute('y2', 25);
-                hmbgrLine2.classList.add('bar2');
-                hmbgrLine3.setAttribute('x1', 5);
-                hmbgrLine3.setAttribute('y1', 37);
-                hmbgrLine3.setAttribute('x2', 45);
-                hmbgrLine3.setAttribute('y2', 37);
-                hmbgrLine3.classList.add('bar3');
-                hmbgr.appendChild(hmbgrLine1);
-                hmbgr.appendChild(hmbgrLine2);
-                hmbgr.appendChild(hmbgrLine3);
-                self.svg.hamburger = hmbgr;
-            }
-            { // angle top
-                let agl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                agl.classList.add('rdx-icon-angletop');
-                let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-                agl.setAttribute('viewBox', '0 0 100 100');
-                agl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-                polygon.setAttribute('points', '50,19 97,66 84,79 50,45 16,79 3,66');
-                polygon.setAttribute('fill', 'currentColor');
-                polygon.setAttribute('stroke', 'none');
-                agl.appendChild(polygon);
-                self.svg.angleTop = agl;
-            }
-            { // angle right
-                let agl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                agl.classList.add('rdx-icon-angleright');
-                let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-                agl.setAttribute('viewBox', '0 0 100 100');
-                agl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-                polygon.setAttribute('points', '81,50 34,97 21,84 55,50 21,16 34,3');
-                polygon.setAttribute('fill', 'currentColor');
-                polygon.setAttribute('stroke', 'none');
-                agl.appendChild(polygon);
-                self.svg.angleRight = agl;
-            }
-            { // angle bottom
-                let agl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                agl.classList.add('rdx-icon-anglebottom');
-                let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-                agl.setAttribute('viewBox', '0 0 100 100');
-                agl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-                polygon.setAttribute('points', '50,81 97,34 84,21 50,55 16,21 3,34');
-                polygon.setAttribute('fill', 'currentColor');
-                polygon.setAttribute('stroke', 'none');
-                agl.appendChild(polygon);
-                self.svg.angleBottom = agl;
-            }
-            { // angle left
-                let agl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                agl.classList.add('rdx-icon-angleleft');
-                let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-                agl.setAttribute('viewBox', '0 0 100 100');
-                agl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-                polygon.setAttribute('points', '19,50 66,97 79,84 45,50 79,16 66,3');
-                polygon.setAttribute('fill', 'currentColor');
-                polygon.setAttribute('stroke', 'none');
-                agl.appendChild(polygon);
-                self.svg.angleLeft = agl;
-            }
-            { // arrow LR
-                let out = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                out.classList.add('rdx-icon-arrowlr');
-                let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-                out.setAttribute('viewBox', '0 0 100 100');
-                out.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-                polygon.setAttribute('points', '10 50, 35 20, 35 42, 65 42, 65 20, 90 50, 65 80, 65 58, 35 58, 35 80');
-                polygon.setAttribute('stroke-linejoin', 'round');
-                polygon.setAttribute('stroke-width', '5');
-                polygon.setAttribute('fill', 'currentColor');
-                polygon.setAttribute('stroke', 'currentColor');
-                out.appendChild(polygon);
-                self.svg.arrowLR = out;
-            }
-            { // arrow TB
-                let out = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                out.classList.add('rdx-icon-arrowtb');
-                let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-                out.setAttribute('viewBox', '0 0 100 100');
-                out.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-                polygon.setAttribute('points', '50 10, 20 35, 42 35, 42 65, 20 65, 50 90, 80 65, 58 65, 58 35, 80 35');
-                polygon.setAttribute('stroke-linejoin', 'round');
-                polygon.setAttribute('stroke-width', '5');
-                polygon.setAttribute('fill', 'currentColor');
-                polygon.setAttribute('stroke', 'currentColor');
-                out.appendChild(polygon);
-                self.svg.arrowTB = out;
-            }
-            { // cross
-                let out = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                out.classList.add('rdx-icon-cross');
-                let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-                out.setAttribute('viewBox', '0 0 100 100');
-                out.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-                polygon.setAttribute('points', '17,2 50,35 83,2 97,16 64,49 97,82 82,97 49,64 16,97 2,83 35,50 2,17');
-                polygon.setAttribute('fill', 'currentColor');
-                polygon.setAttribute('stroke', 'none');
-                out.appendChild(polygon);
-                self.svg.cross = out;
-            }
+        if (self.option.icons.active) {
+            const iconSources = {
+                cross: {
+                    viewbox: '0 0 100 100',
+                    path: 'M 2 17 L 17 2 L 50 35 L 83 2 L 98 17 L 65 50 L 98 83 L 83 98 L 50 65 L 17 98 L 2 83 L 35 50 L 2 17 Z',
+                    fill: true,
+                    stroke: 0,
+                    linejoin: 'miter',
+                    linecap: 'butt'
+                },
+                angle_top: {
+                    viewbox: '0 0 100 100',
+                    path: 'M 50 19 L 97 66 L 84 79 L 50 45 L 16 79 L 3 66 L 50 19 Z',
+                    fill: true,
+                    stroke: 0
+                },
+                angle_right: {
+                    viewbox: '0 0 100 100',
+                    path: 'M 81 50 L 34 97 L 21 84 L 55 50 L 21 16 L 34 3 L 81 50 Z',
+                    fill: true,
+                    stroke: 0
+                },
+                angle_bottom: {
+                    viewbox: '0 0 100 100',
+                    path: 'M 50 81 L 97 34 L 84 21 L 50 55 L 16 21 L 3 34 L 50 81 Z',
+                    fill: true,
+                    stroke: 0
+                },
+                angle_left: {
+                    viewbox: '0 0 100 100',
+                    path: 'M 19 50 L 66 3 L 79 16 L 45 50 L 79 84 L 66 97 L 19 50 Z',
+                    fill: true,
+                    stroke: 0
+                },
+                arrow_lr: {
+                    viewbox: '0 0 100 100',
+                    path: 'M 10 50 L 35 20 L 35 42 L 65 42 L 65 20 L 90 50 L 65 80 L 65 58 L 35 58 L 35 80 L 10 50 Z',
+                    fill: true,
+                    stroke: 0
+                },
+                arrow_tb: {
+                    viewbox: '0 0 100 100',
+                    path: 'M 50 10 L 80 35 L 58 35 L 58 65 L 80 65 L 50 90 L 20 65 L 42 65 L 42 35 L 20 35 L 50 10 Z',
+                    fill: true,
+                    stroke: 0
+                },
+                magnifying_glass: {
+                    viewbox: '0 0 500 500',
+                    path: 'M 120 195 C 120 92.896 202.896 10 305 10 C 407.104 10 490 92.896 490 195 C 490 297.104 407.104 380 305 380 C 202.896 380 120 297.104 120 195 Z  M 180 195 C 179.99 186.52 180.85 178.06 182.55 169.75 C 184.18 161.76 186.61 153.94 189.8 146.42 C 196.1 131.55 205.21 118.05 216.64 106.64 C 228.05 95.21 241.55 86.1 256.42 79.8 C 263.94 76.61 271.76 74.18 279.76 72.54 C 288.07 70.85 296.52 69.99 305 70 C 313.48 69.99 321.93 70.85 330.24 72.54 C 338.24 74.18 346.06 76.61 353.58 79.8 C 368.45 86.1 381.95 95.21 393.36 106.64 C 404.79 118.05 413.9 131.55 420.2 146.42 C 423.39 153.94 425.82 161.76 427.46 169.76 C 429.15 178.07 430.01 186.52 430 195 C 430.01 203.48 429.15 211.93 427.46 220.24 C 425.82 228.24 423.39 236.06 420.2 243.58 C 413.9 258.45 404.79 271.95 393.36 283.36 C 381.95 294.79 368.45 303.9 353.58 310.2 C 346.06 313.39 338.24 315.82 330.24 317.46 C 321.93 319.15 313.48 320.01 305 320 C 296.52 320.01 288.07 319.15 279.76 317.46 C 271.76 315.82 263.94 313.39 256.42 310.2 C 241.55 303.9 228.05 294.79 216.64 283.36 C 205.21 271.95 196.1 258.45 189.8 243.58 C 186.61 236.06 184.18 228.24 182.54 220.24 C 180.85 211.93 179.99 203.48 180 195 Z  M 13 490 L 13 413.148 L 126.148 300 L 203 376.852 L 89.852 490 L 13 490 Z',
+                    fill: true,
+                    fillRule: "evenodd",
+                    stroke: 0
+                },
+                zoom_in: {
+                    viewbox: '0 0 500 500',
+                    path: 'M 120 195 C 120 92.896 202.896 10 305 10 C 407.104 10 490 92.896 490 195 C 490 297.104 407.104 380 305 380 C 202.896 380 120 297.104 120 195 Z  M 180 195 C 179.99 186.52 180.85 178.06 182.55 169.75 C 184.18 161.76 186.61 153.94 189.8 146.42 C 196.1 131.55 205.21 118.05 216.64 106.64 C 228.05 95.21 241.55 86.1 256.42 79.8 C 263.94 76.61 271.76 74.18 279.76 72.54 C 288.07 70.85 296.52 69.99 305 70 C 313.48 69.99 321.93 70.85 330.24 72.54 C 338.24 74.18 346.06 76.61 353.58 79.8 C 368.45 86.1 381.95 95.21 393.36 106.64 C 404.79 118.05 413.9 131.55 420.2 146.42 C 423.39 153.94 425.82 161.76 427.46 169.76 C 429.15 178.07 430.01 186.52 430 195 C 430.01 203.48 429.15 211.93 427.46 220.24 C 425.82 228.24 423.39 236.06 420.2 243.58 C 413.9 258.45 404.79 271.95 393.36 283.36 C 381.95 294.79 368.45 303.9 353.58 310.2 C 346.06 313.39 338.24 315.82 330.24 317.46 C 321.93 319.15 313.48 320.01 305 320 C 296.52 320.01 288.07 319.15 279.76 317.46 C 271.76 315.82 263.94 313.39 256.42 310.2 C 241.55 303.9 228.05 294.79 216.64 283.36 C 205.21 271.95 196.1 258.45 189.8 243.58 C 186.61 236.06 184.18 228.24 182.54 220.24 C 180.85 211.93 179.99 203.48 180 195 Z  M 13 490 L 13 413.148 L 126.148 300 L 203 376.852 L 89.852 490 L 13 490 Z  M 205 160 L 270 160 L 270 95 L 340 95 L 340 160 L 405 160 L 405 230 L 340 230 L 340 295 L 270 295 L 270 230 L 205 230 L 205 160 Z',
+                    fill: true,
+                    fillRule: "evenodd",
+                    stroke: 0
+                },
+                zoom_out: {
+                    viewbox: '0 0 500 500',
+                    path: 'M 120 195 C 120 92.896 202.896 10 305 10 C 407.104 10 490 92.896 490 195 C 490 297.104 407.104 380 305 380 C 202.896 380 120 297.104 120 195 Z  M 180 195 C 179.99 186.52 180.85 178.06 182.55 169.75 C 184.18 161.76 186.61 153.94 189.8 146.42 C 196.1 131.55 205.21 118.05 216.64 106.64 C 228.05 95.21 241.55 86.1 256.42 79.8 C 263.94 76.61 271.76 74.18 279.76 72.54 C 288.07 70.85 296.52 69.99 305 70 C 313.48 69.99 321.93 70.85 330.24 72.54 C 338.24 74.18 346.06 76.61 353.58 79.8 C 368.45 86.1 381.95 95.21 393.36 106.64 C 404.79 118.05 413.9 131.55 420.2 146.42 C 423.39 153.94 425.82 161.76 427.46 169.76 C 429.15 178.07 430.01 186.52 430 195 C 430.01 203.48 429.15 211.93 427.46 220.24 C 425.82 228.24 423.39 236.06 420.2 243.58 C 413.9 258.45 404.79 271.95 393.36 283.36 C 381.95 294.79 368.45 303.9 353.58 310.2 C 346.06 313.39 338.24 315.82 330.24 317.46 C 321.93 319.15 313.48 320.01 305 320 C 296.52 320.01 288.07 319.15 279.76 317.46 C 271.76 315.82 263.94 313.39 256.42 310.2 C 241.55 303.9 228.05 294.79 216.64 283.36 C 205.21 271.95 196.1 258.45 189.8 243.58 C 186.61 236.06 184.18 228.24 182.54 220.24 C 180.85 211.93 179.99 203.48 180 195 Z  M 13 490 L 13 413.148 L 126.148 300 L 203 376.852 L 89.852 490 L 13 490 Z  M 205 160 L 405 160 L 405 230 L 205 230 L 205 160 Z',
+                    fill: true,
+                    fillRule: "evenodd",
+                    stroke: 0
+                }
+            };
+            self.icons = {};
+            Object.keys(iconSources).forEach(iconName => {
+                let iconData = iconSources[iconName];
+                let svgIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svgIcon.setAttribute('viewBox', iconData.viewbox);
+                svgIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                svgIcon.classList.add('radix-icon');
+                svgIcon.classList.add('rdx-icon-'+iconName);
+                let iconPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                iconPath.setAttribute('d', iconData.path);
+                if (iconData.fill) {
+                    iconPath.setAttribute('fill', 'currentColor');
+                    if (iconData.fillRule !== undefined) iconPath.setAttribute('fill-rule', iconData.fillRule);
+                } else {
+                    iconPath.setAttribute('fill', 'none');
+                }
+                if (iconData.stroke === 0) {
+                    iconPath.setAttribute('stroke', 'none');
+                } else {
+                    iconPath.setAttribute('stroke', 'currentColor');
+                    iconPath.setAttribute('stroke-linejoin', iconData.linejoin);
+                    iconPath.setAttribute('stroke-linecap', iconData.linecap);
+                }
+                iconPath.setAttribute('stroke', 'none');
+                svgIcon.appendChild(iconPath);
+                self.icons[iconName] = svgIcon;
+            });
+            // hamburger Menu
+            let hmbgr = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            let hmbgrLine1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            let hmbgrLine2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            let hmbgrLine3 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            hmbgr.setAttribute('viewBox', '0 0 50 50');
+            hmbgr.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+            hmbgr.classList.add('radix-icon');
+            hmbgr.classList.add('rdx-icon-hamburger');
+            hmbgrLine1.setAttribute('x1', 5);
+            hmbgrLine1.setAttribute('y1', 13);
+            hmbgrLine1.setAttribute('x2', 45);
+            hmbgrLine1.setAttribute('y2', 13);
+            hmbgrLine1.classList.add('bar1');
+            hmbgrLine2.setAttribute('x1', 5);
+            hmbgrLine2.setAttribute('y1', 25);
+            hmbgrLine2.setAttribute('x2', 45);
+            hmbgrLine2.setAttribute('y2', 25);
+            hmbgrLine2.classList.add('bar2');
+            hmbgrLine3.setAttribute('x1', 5);
+            hmbgrLine3.setAttribute('y1', 37);
+            hmbgrLine3.setAttribute('x2', 45);
+            hmbgrLine3.setAttribute('y2', 37);
+            hmbgrLine3.classList.add('bar3');
+            hmbgr.appendChild(hmbgrLine1);
+            hmbgr.appendChild(hmbgrLine2);
+            hmbgr.appendChild(hmbgrLine3);
+            self.icons.hamburger = hmbgr;
             // svg insert
-            let icons = document.querySelectorAll('.rdx-icons');
-            if (icons) {
-                icons.forEach(icon => {
-                    let innerText = icon.innerText;
-                    if (Object.keys(self.option.svg).includes(innerText)) {
-                        icon.innerHTML = '';
-                        icon.appendChild(self.svg[innerText].cloneNode(true));
-                    }
+            let iconCalls = document.querySelectorAll(self.option.icons.selector);
+            if (iconCalls) {
+                iconCalls.forEach(iconCall => {
+                    let innerText = iconCall.innerText;
+                    self.replaceIcon(iconCall, innerText);
                 });
             }
         }
         // Toggle menu
         if (self.option.toggleNav.active && self.option.toggleNav.trigger !== '' && self.option.toggleNav.target !== '') {
-            self.navOpen = false;
+            self.navState = false;
             let toggleTrigger = document.querySelectorAll(self.option.toggleNav.trigger);
             toggleTrigger.forEach(t => {
                 t.addEventListener('click', () => { self.toggleNav(); });
@@ -303,18 +310,18 @@ class radix {
             let dragScrollWrapper = document.querySelectorAll(self.option.dragScroll.selector);
             if (dragScrollWrapper.length > 0) {
                 let downEvent = (elm, event) => {
-                    elm.setAttribute('rdx-drag-scroll-on', true);
-                    elm.setAttribute('rdx-drag-scroll-scrolled-x', elm.scrollLeft);
-                    elm.setAttribute('rdx-drag-scroll-scrolled-y', elm.scrollTop);
-                    elm.setAttribute('rdx-drag-scroll-click-x', event.clientX);
-                    elm.setAttribute('rdx-drag-scroll-click-y', event.clientY);
+                    elm.setAttribute('rdx-drag-on', true);
+                    elm.setAttribute('rdx-drag-scrolled-x', elm.scrollLeft);
+                    elm.setAttribute('rdx-drag-scrolled-y', elm.scrollTop);
+                    elm.setAttribute('rdx-drag-click-x', event.clientX);
+                    elm.setAttribute('rdx-drag-click-y', event.clientY);
                 };
                 let moveEvent = event => {
-                    let target = document.querySelector('[rdx-drag-scroll-on="true"]');
+                    let target = document.querySelector('[rdx-drag-on="true"]');
                     if (target !== null) {
                         event.preventDefault();
-                        target.scrollLeft = Number(target.getAttribute('rdx-drag-scroll-scrolled-x')) + Number(target.getAttribute('rdx-drag-scroll-click-x')) - event.clientX;
-                        target.scrollTop = Number(target.getAttribute('rdx-drag-scroll-scrolled-y')) + Number(target.getAttribute('rdx-drag-scroll-click-y')) - event.clientY;
+                        target.scrollLeft = Number(target.getAttribute('rdx-drag-scrolled-x')) + Number(target.getAttribute('rdx-drag-click-x')) - event.clientX;
+                        target.scrollTop = Number(target.getAttribute('rdx-drag-scrolled-y')) + Number(target.getAttribute('rdx-drag-click-y')) - event.clientY;
                     }
                 };
                 let upEvent = () => {
@@ -323,9 +330,9 @@ class radix {
                     });
                 };
                 let toggleHint = () => {
-                    let target = document.querySelector('[rdx-drag-scroll-on="true"]');
+                    let target = document.querySelector('[rdx-drag-on="true"]');
                     if (target !== null) {
-                        let thisHint = target.querySelector('.rdx-scroll-hint');
+                        let thisHint = target.querySelector('.rdx-drag-hint');
                         if (thisHint !== null && (target.scrollLeft > 0 || target.scrollWidth === target.clientWidth)) {
                             thisHint.classList.add('hide');
                         }
@@ -333,8 +340,8 @@ class radix {
                 };
 
                 let scrollHint = document.createElement('div');
-                scrollHint.classList.add('rdx-scroll-hint');
-                scrollHint.appendChild(self.svg.arrowLR.cloneNode(true));
+                scrollHint.classList.add('rdx-drag-hint');
+                scrollHint.appendChild(self.icons.arrow_lr.cloneNode(true));
                 document.addEventListener('mousemove', toggleHint, false);
                 document.addEventListener('touchmove', toggleHint, false);
 
@@ -345,10 +352,10 @@ class radix {
                         downEvent(e, v)
                     }, false);
                     e.addEventListener('touchstart', () => {
-                        e.setAttribute('rdx-drag-scroll-on', true);
+                        e.setAttribute('rdx-drag-on', true);
                     }, false);
                     e.addEventListener('touchend', () => {
-                        e.setAttribute('rdx-drag-scroll-on', false);
+                        e.setAttribute('rdx-drag-on', false);
                     }, false);
                     if (e.scrollWidth > e.clientWidth) {
                         e.style.cursor = 'move';
@@ -389,19 +396,18 @@ class radix {
                     area: document.createElement('div'),
                     wrapper: document.createElement('div'),
                     content: document.createElement('div'),
-                    closeButton: self.svg.cross.cloneNode(true),
+                    closeButton: self.icons.cross.cloneNode(true),
                     toggles: document.createElement('div'),
                     magnifier: document.createElement('div'),
-                    enlarge: document.createElement('div'),
-                    shrink: document.createElement('div'),
+                    enlarge: self.icons.zoom_in.cloneNode(true),
+                    shrink: self.icons.zoom_out.cloneNode(true),
                     scaleDisp: document.createElement('div'),
                     scale: self.option.modal.defaultScale,
-                    scaleStep: [0.2, 0.4, 0.6, 0.8, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5],
                     size: {
                         width: 0,
                         height: 0
                     },
-                    speed: self.option.modal.resizeSpeed,
+                    duration: self.option.modal.resizeDuration,
                     easing: self.option.modal.resizeEasing
                 }
                 self.modalParts.viewport.classList.add('rdx-modal-viewport');
@@ -416,9 +422,7 @@ class radix {
                 self.modalParts.wrapper.appendChild(self.modalParts.content);
                 self.modalParts.magnifier.classList.add('rdx-modal-magnifier');
                 self.modalParts.enlarge.classList.add('rdx-modal-enlarge');
-                self.modalParts.enlarge.innerHTML = self.option.modal.enlargeText;
                 self.modalParts.shrink.classList.add('rdx-modal-shrink');
-                self.modalParts.shrink.innerHTML = self.option.modal.shrinkText;
                 self.modalParts.scaleDisp.classList.add('rdx-modal-scale');
                 self.modalParts.toggles.appendChild(self.modalParts.magnifier);
                 self.modalParts.magnifier.appendChild(self.modalParts.scaleDisp);
@@ -455,26 +459,28 @@ class radix {
                 });
 
                 modals.forEach(modal => {
-                    let targets = document.querySelectorAll(modal.dataset.modalTarget);
-                    if (targets) {
-                        targets.forEach(target => {
-                            target.classList.add('rdx-modal-source');
-                        });
-                    }
-                    if (modal.dataset.modalTarget === null) {
-                        modal.classList.add('rdx-modal-source');
+                    let targets = [];
+                    if (modal.hasAttribute('data-modal-target')) {
+                        targets = document.querySelectorAll(modal.dataset.modalTarget);
+                        if (targets) {
+                            targets.forEach(target => {
+                                target.classList.add('rdx-modal-source');
+                            });
+                        }
+                    } else {
                         targets = [modal];
+                        modal.classList.add('rdx-modal-source');
                     }
                     modal.addEventListener('click', event => {
                         event.preventDefault();
-                        let scale = modal.dataset.modalScale === null ? null : modal.dataset.modalScale;
+                        let scale = modal.hasAttribute('data-modal-scale') ? modal.dataset.modalScale : null;
                         self.modalOpen(targets, modal.dataset.modalDuration, modal.dataset.modalEasing, scale);
                         let innerModals = self.modalParts.content.querySelectorAll(self.option.modal.selector);
                         innerModals.forEach(innerModal => {
                             innerModal.addEventListener('click', v => {
                                 v.preventDefault();
-                                let innerTarget = innerModal.dataset.modalTarget === null ? [modal] : document.querySelectorAll(innerModal.dataset.modalTarget);
-                                scale = innerModal.dataset.modalScale === null ? null : innerModal.dataset.modalScale;
+                                let innerTarget = innerModal.hasAttribute('data-modal-target') ? document.querySelectorAll(innerModal.dataset.modalTarget) : [modal];
+                                scale = innerModal.hasAttribute('data-modal-scale') ? innerModal.dataset.modalScale : null;
                                 self.modalOpen(innerTarget, innerModal.dataset.modalDuration, innerModal.dataset.modalEasing, scale);
                             });
                         });
@@ -489,20 +495,23 @@ class radix {
                         }
                     }
                 }, false);
-                self.modalParts.closeButton.addEventListener('click', self.modalClose(), false);
+                self.modalParts.closeButton.addEventListener('click', () => {self.modalClose()}, false);
             }
         }
         // scroll appear
         if (self.option.scrollAppear.active) {
             const appearItems = document.querySelectorAll(self.option.scrollAppear.selector);
             if (appearItems.length > 0) {
+                appearItems.forEach(item => {
+                    item.classList.add('rdx-scroll-appear');
+                });
                 window.addEventListener('scroll', () => {
                     let windowHeight = window.innerHeight;
                     appearItems.forEach(appearItem => {
-                        let resetFlg = appearItem.dataset.appearReset === null ? self.option.scrollAppear.reset : appearItem.dataset.appearReset;
-                        let activeClass = appearItem.dataset.appearClass === null ? self.option.scrollAppear.class : appearItem.dataset.appearClass;
-                        let modeNum = appearItem.dataset.appearFixed === null ? null : appearItem.dataset.appearFixed;
-                        let delay = appearItem.dataset.appearDelay === null ? self.option.scrollAppear.delay : appearItem.dataset.appearDelay;
+                        let resetFlg = appearItem.hasAttribute('data-appear-reset') ? appearItem.dataset.appearReset : self.option.scrollAppear.reset;
+                        let activeClass = appearItem.hasAttribute('data-appear-class') ?  appearItem.dataset.appearClass : self.option.scrollAppear.class;
+                        let delay = appearItem.hasAttribute('data-appear-delay') ? appearItem.dataset.appearDelay : self.option.scrollAppear.delay;
+                        let modeNum = appearItem.hasAttribute('data-appear-fixed') ? appearItem.dataset.appearFixed : null;
 
                         if (modeNum === null) {
                             let itemRect = appearItem.getBoundingClientRect();
@@ -538,26 +547,29 @@ class radix {
                 if (preloader) {
                     setTimeout(() => {
                         preloader.classList.add('hide');
-                    }, self.option.preload.minload);
+                    }, self.option.preload.delay);
                 }
             });
         }
     };
     /**
      * スムーススクロール
-     * @param {object} scrollPos スクロールの始点・終点を格納した連想配列
+     * @param {float} scrollFrom スクロールの始点
+     * @param {float} scrollTo スクロールの終点
+     * @param {int} duration スクロールにかける時間（ミリ秒）
+     * @param {string} easingName スクロールアニメーションのイージング
      */
-    smoothScroll(scrollFrom, scrollTo, uniqueDuration, uniqueEasing) {
+    smoothScroll(scrollFrom, scrollTo, duration, easingName) {
         const self = this;
         scrollTo = scrollTo < 0 ? 0 : scrollTo;
         const changeVal = scrollTo - scrollFrom;
-        const duration = uniqueDuration === null ? self.option.smoothScroll.duration : uniqueDuration;
-        const easingName = uniqueEasing === null ? self.option.smoothScroll.easing : uniqueEasing;
+        duration = duration === null ? self.option.smoothScroll.duration : duration;
+        easingName = easingName === null ? self.option.smoothScroll.easing : easingName;
         const easing = self.getEasing(easingName);
         let cnt = 0;
         let timer = null;
 
-        self.dispatchEvent(self.events.beforeScroll);
+        document.dispatchEvent(self.events.beforeScroll);
 
         let moveAnimate = () => {
             cnt++;
@@ -567,7 +579,7 @@ class radix {
             if (elapsedTime > duration) {
                 window.scrollTo(0, scrollTo);
                 clearInterval(timer);
-                self.dispatchEvent(self.events.afterScroll);
+                document.dispatchEvent(self.events.afterScroll);
             }
         }
         timer = setInterval(moveAnimate, self.option.timeFrame);
@@ -595,66 +607,87 @@ class radix {
         let toggleTarget = document.querySelectorAll(self.option.toggleNav.target);
 
         if (mode === undefined) {
-            if (self.navOpen) {
-                self.dispatchEvent(self.events.beforeNavClose);
+            if (self.navState) {
+                document.dispatchEvent(self.events.beforeNavClose);
                 if (self.option.toggleNav.preventScroll) {
                     self.preventScroll(false);
                 }
-                self.navOpen = false;
+                self.navState = false;
                 toggleTrigger.forEach(t => {
                         t.classList.remove(self.option.toggleNav.class);
                 });
                 toggleTarget.forEach(t => {
                         t.classList.remove(self.option.toggleNav.class);
                 });
-                self.dispatchEvent(self.events.afterNavClose);
+                document.dispatchEvent(self.events.afterNavClose);
             } else {
-                self.dispatchEvent(self.events.beforeNavOpen);
+                document.dispatchEvent(self.events.beforeNavOpen);
                 if (self.option.toggleNav.preventScroll) {
                     self.preventScroll(true);
                 }
-                self.navOpen = true;
+                self.navState = true;
                 toggleTrigger.forEach(t => {
                         t.classList.add(self.option.toggleNav.class);
                 });
                 toggleTarget.forEach(t => {
                         t.classList.add(self.option.toggleNav.class);
                 });
-                self.dispatchEvent(self.events.afterNavOpen);
+                document.dispatchEvent(self.events.afterNavOpen);
             }
         } else {
             if (mode === true || mode === 'close') {
-                self.dispatchEvent(self.events.beforeNavClose);
+                document.dispatchEvent(self.events.beforeNavClose);
                 if (self.option.toggleNav.preventScroll) {
                     self.preventScroll(false);
                 }
-                self.navOpen = false;
+                self.navState = false;
                 toggleTrigger.forEach(t => {
                         t.classList.remove(self.option.toggleNav.class);
                 });
                 toggleTarget.forEach(t => {
                         t.classList.remove(self.option.toggleNav.class);
                 });
-                self.dispatchEvent(self.events.afterNavClose);
+                document.dispatchEvent(self.events.afterNavClose);
             } else if (mode === false || mode === 'open') {
-                self.dispatchEvent(self.events.beforeNavOpen);
+                document.dispatchEvent(self.events.beforeNavOpen);
                 if (self.option.toggleNav.preventScroll) {
                     self.preventScroll(true);
                 }
-                self.navOpen = true;
+                self.navState = true;
                 toggleTrigger.forEach(t => {
                         t.classList.add(self.option.toggleNav.class);
                 });
                 toggleTarget.forEach(t => {
                         t.classList.add(self.option.toggleNav.class);
                 });
-                self.dispatchEvent(self.events.afterNavOpen);
+                document.dispatchEvent(self.events.afterNavOpen);
             }
         }
     };
+    /**
+     * SVG iconに置き換える
+     * @param {element} icon SVGに置き換える対象
+     */
+    replaceIcon(target, icon) {
+        const self = this;
+        icon = icon === null ? target.innerText : icon;
+        if (Object.keys(self.icons).includes(icon)) {
+            target.replaceWith(self.icons[icon].cloneNode(true));
+        } else {
+            console.log('' + icon + ' is not icon name.');
+        }
+    };
+    /**
+     * モーダルを開く
+     * @param {array} targets 開く対象のエレメントの配列
+     * @param {int} duration 拡縮にかける時間
+     * @param {string} easing 拡縮アニメーションのイージング
+     * @param {float} scale 開いたときの拡大率
+     */
     modalOpen(targets, duration, easing, scale) {
         const self = this;
-        self.dispatchEvent(self.events.beforeModalOpen);
+        if (self.modalState) return;
+        document.dispatchEvent(self.events.beforeModalOpen);
 
         self.modalParts.content.innerHTML = '';
         targets.forEach(target => {
@@ -666,7 +699,7 @@ class radix {
         });
         self.preventScroll(true);
 
-        self.modalParts.magnifier.style.display = self.option.modal.magnifier ? 'flex' : 'none';
+        self.modalParts.magnifier.style.display = self.option.modal.magnify ? 'flex' : 'none';
         self.modalParts.duration = duration === null ? self.option.modal.resizeDuration : duration;
         self.modalParts.easing = easing === null ? self.option.modal.resizeEasing : easing;
         self.modalParts.size = {
@@ -679,10 +712,10 @@ class radix {
         } else if (self.option.modal.fit === true) {
             let areaHeight = self.modalParts.area.clientHeight;
             let areaWidth = self.modalParts.area.clientWidth;
-            self.modalParts.scale = self.modalParts.scaleStep[0];
+            self.modalParts.scale = self.option.modal.scaleStep[0];
             for (let i = 0; i < self.modalParts.scaleStep.length; i++) {
-                if (self.modalParts.size.width * self.modalParts.scaleStep[i] > areaWidth || self.modalParts.size.height * self.modalParts.scaleStep[i] > areaHeight) break;
-                self.modalParts.scale = self.modalParts.scaleStep[i];
+                if (self.modalParts.size.width * self.option.modal.scaleStep[i] > areaWidth || self.modalParts.size.height * self.option.modal.scaleStep[i] > areaHeight) break;
+                self.modalParts.scale = self.option.modal.scaleStep[i];
             }
         }
 
@@ -690,29 +723,33 @@ class radix {
         self.modalParts.wrapper.style.height = 'min(' + self.floatCeil(self.modalParts.size.height * self.modalParts.scale, 0) + 'px, 100%)';
         self.modalParts.wrapper.style.width = 'min(' + self.floatCeil(self.modalParts.size.width * self.modalParts.scale, 0) + 'px, 100%)';
         self.modalParts.viewport.classList.add('active');
-        self.modalParts.scaleDisp.innerHTML = self.modalParts.scale + 'x';
-
-        self.modalOpen = true;
-        self.dispatchEvent(self.events.beforeModalOpen);
+        self.modalParts.scaleDisp.innerHTML = self.floatRound(self.modalParts.scale, 1) + 'x';
+        self.modalState = true;
+        document.dispatchEvent(self.events.beforeModalOpen);
     };
+    /**
+     * モーダルを閉じる
+     */
     modalClose() {
         const self = this;
-        self.dispatchEvent(self.events.beforeModalClose);
+        if (!self.modalState) return;
+        document.dispatchEvent(self.events.beforeModalClose);
         self.modalParts.viewport.classList.remove('active');
         self.modalParts.content.innerHTML = '';
         self.preventScroll(false);
         self.modalParts.content.style = '';
         self.modalParts.wrapper.style = '';
-        self.modalOpen = false;
-        self.dispatchEvent(self.events.afterModalClose);
+        self.modalState = false;
+        document.dispatchEvent(self.events.afterModalClose);
     };
     /**
      * モーダルウィンドウの拡縮
-     * @param {number} aftScale 操作後の倍率
+     * @param {float} aftScale 操作後の倍率
      */
     modalResize(aftScale) {
         const self = this;
-        let duration = self.option.modal.resizeSpeed;
+        if (!self.modalState) return;
+        let duration = self.option.modal.resizeDuration;
         let frame = self.option.timeFrame;
         let cnt = 0;
         let timer = null;
@@ -751,44 +788,35 @@ class radix {
     /**
      * 型の判定
      * @param {operand} obj 判定したいもの
-     * @return {string} obj の型名
+     * @return {string} 型名
      */
     typeJudge(obj) {
         return toString.call(obj).slice(8, -1).toLowerCase();
     };
     /**
      * 少数の桁変換
-     * @param {number} x 対象となる少数
-     * @param {number} digit 切り上げる小数点
+     * @param {float} x 対象となる少数
+     * @param {int} digit 切り上げる小数点
      * @return {string} フィックスされた少数文字列
      */
-    floatRound(num, _digit) {
-        let digit = _digit === undefined ? 2 : Number.parseInt(_digit);
+    floatRound(num, digit) {
+        digit = digit === undefined ? 2 : Number.parseInt(digit);
         let fix = 10 ** digit;
         let res = Math.round(num * fix) / fix;
         return res.toFixed(digit);
     };
-    floatCeil(num, _digit) {
-        let digit = _digit === undefined ? 2 : Number.parseInt(_digit);
+    floatCeil(num, digit) {
+        digit = digit === undefined ? 2 : Number.parseInt(digit);
         let fix = 10 ** digit;
         let res = Math.ceil(num * fix) / fix;
         return res.toFixed(digit);
     };
-    floatFloor(num, _digit) {
-        let digit = _digit === undefined ? 2 : Number.parseInt(_digit);
+    floatFloor(num, digit) {
+        digit = digit === undefined ? 2 : Number.parseInt(digit);
         let fix = 10 ** digit;
         let res = Math.floor(num * fix) / fix;
         return res.toFixed(digit);
     };
-    /*
-     * Robert Penner’s Easing Functions
-     * http://robertpenner.com/easing/
-     * https://easings.net/
-     *
-     * Open source under the MIT License and the 3-Clause BSD License.
-     *
-     * Copyright © 2001 Robert Penner
-     */
     /**
      * イージング関数を取得する関数
      * @param {string} easingName イージング関数の名称
