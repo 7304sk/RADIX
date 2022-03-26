@@ -24,8 +24,11 @@ preset variables
 /* OVERWRITE RADIX */
 
 /*
-固定ページ化用
-body {min-width: var(--contentWidth)}
+非レスポンシブページ用手順：
+①以下のスタイルを有効にする。
+    body {min-width: var(--contentWidth)}
+②HTMLの <meta name="viewport"> の content を、--contentWidth + ある程度の余白分の数値にする。
+    EX: <meta name="viewport" content="width=1100">
 */
 
 /* OVERWRITE end */
