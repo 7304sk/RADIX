@@ -292,7 +292,7 @@ class radix {
             let iconCalls = document.querySelectorAll(self.option.icons.selector);
             if (iconCalls) {
                 iconCalls.forEach(iconCall => {
-                    let innerText = iconCall.innerText;
+                    let innerText = iconCall.textContent;
                     self.replaceIcon(iconCall, innerText);
                 });
             }
@@ -475,15 +475,6 @@ class radix {
                         event.preventDefault();
                         let scale = modal.hasAttribute('data-modal-scale') ? modal.dataset.modalScale : null;
                         self.modalOpen(targets, modal.dataset.modalDuration, modal.dataset.modalEasing, scale);
-                        let innerModals = self.modalParts.content.querySelectorAll(self.option.modal.selector);
-                        innerModals.forEach(innerModal => {
-                            innerModal.addEventListener('click', v => {
-                                v.preventDefault();
-                                let innerTarget = innerModal.hasAttribute('data-modal-target') ? document.querySelectorAll(innerModal.dataset.modalTarget) : [modal];
-                                scale = innerModal.hasAttribute('data-modal-scale') ? innerModal.dataset.modalScale : null;
-                                self.modalOpen(innerTarget, innerModal.dataset.modalDuration, innerModal.dataset.modalEasing, scale);
-                            });
-                        });
                     });
                 });
 
@@ -563,9 +554,9 @@ class radix {
         const self = this;
         scrollTo = scrollTo < 0 ? 0 : scrollTo;
         const changeVal = scrollTo - scrollFrom;
-        duration = duration === null ? self.option.smoothScroll.duration : duration;
-        easingName = easingName === null ? self.option.smoothScroll.easing : easingName;
-        const easing = self.getEasing(easingName);
+        duration = duration === undefined ? self.option.smoothScroll.duration : duration;
+        easingName = easingName === undefined ? self.option.smoothScroll.easing : easingName;
+        let easing = self.getEasing(easingName);
         let cnt = 0;
         let timer = null;
 
@@ -670,7 +661,7 @@ class radix {
      */
     replaceIcon(target, icon) {
         const self = this;
-        icon = icon === null ? target.innerText : icon;
+        icon = icon === undefined ? target.innerText : icon;
         if (Object.keys(self.icons).includes(icon)) {
             target.replaceWith(self.icons[icon].cloneNode(true));
         } else {
@@ -692,7 +683,6 @@ class radix {
         self.modalParts.content.innerHTML = '';
         targets.forEach(target => {
                 let modalClone = target.cloneNode(true);
-                modalClone.classList.remove(self.option.modal.selector);
                 modalClone.classList.remove('rdx-modal-source');
                 modalClone.classList.add('rdx-modal-item');
                 self.modalParts.content.appendChild(modalClone);
@@ -700,8 +690,8 @@ class radix {
         self.preventScroll(true);
 
         self.modalParts.magnifier.style.display = self.option.modal.magnify ? 'flex' : 'none';
-        self.modalParts.duration = duration === null ? self.option.modal.resizeDuration : duration;
-        self.modalParts.easing = easing === null ? self.option.modal.resizeEasing : easing;
+        self.modalParts.duration = duration === undefined ? self.option.modal.resizeDuration : duration;
+        self.modalParts.easing = easing === undefined ? self.option.modal.resizeEasing : easing;
         self.modalParts.size = {
             width: self.modalParts.content.offsetWidth,
             height: self.modalParts.content.offsetHeight

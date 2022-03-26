@@ -1,4 +1,5 @@
 @charset "UTF-8";
+
 /************************************
 
     RADIX
@@ -24,6 +25,7 @@
     all: unset;
     display: revert;
 }
+
 *,
 *:before,
 *:after {
@@ -378,9 +380,9 @@ main p,
     vertical-align: sub;
 }
 
-.rdx-svg-hamburger .bar1,
-.rdx-svg-hamburger .bar2,
-.rdx-svg-hamburger .bar3 {
+.rdx-icon-hamburger .bar1,
+.rdx-icon-hamburger .bar2,
+.rdx-icon-hamburger .bar3 {
     stroke-linecap: butt;
     stroke-linejoin: miter;
     stroke-width: 4px;
@@ -390,15 +392,15 @@ main p,
     opacity: 1;
 }
 
-.opened .rdx-svg-hamburger .bar1 {
+.opened .rdx-icon-hamburger .bar1 {
     transform: rotate(45deg) scale(1.2) translate(10%, -27%);
 }
 
-.opened .rdx-svg-hamburger .bar2 {
+.opened .rdx-icon-hamburger .bar2 {
     opacity: 0;
 }
 
-.opened .rdx-svg-hamburger .bar3 {
+.opened .rdx-icon-hamburger .bar3 {
     transform: rotate(-45deg) scale(1.2) translate(-50%, -15%);
 }
 
@@ -429,10 +431,12 @@ main p,
     --rmv-bg-color: rgba(0, 0, 0, 0.85);
     --rmv-text-color: #fff;
 }
+
 .rdx-modal-viewport.white {
     --rmv-bg-color: rgba(255, 255, 255, 0.85);
     --rmv-text-color: #666;
 }
+
 .rdx-modal-viewport {
     --rmv-bg-color: rgba(0, 0, 0, 0.85);
     --rmv-text-color: #fff;
@@ -503,6 +507,8 @@ main p,
     max-width: 100%;
     max-height: 100%;
     overflow: auto;
+    padding: 7px;
+    box-sizing: content-box;
 }
 
 .rdx-modal-wrapper::-webkit-scrollbar {
@@ -536,7 +542,7 @@ main p,
     transform-origin: top left;
 }
 
-.rdx-modal-content > img.rdx-modal-item {
+.rdx-modal-content>img.rdx-modal-item {
     display: block;
 }
 
