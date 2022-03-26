@@ -678,44 +678,59 @@ class radix {
     modalOpen(targets, duration, easing, scale) {
         const self = this;
         if (self.modalState) return;
-        document.dispatchEvent(self.events.beforeModalOpen);
-
-        self.modalParts.content.innerHTML = '';
-        targets.forEach(target => {
+        const promise = new Promise(resolve => {
+            document.dispatchEvent(self.events.beforeModalOpen);
+            resolve();
+        });
+        promise.then(() => {
+            return new Promise(resolve => {
+                self.modalParts.content.innerHTML = '';
+                self.modalParts.magnifier.style.display = self.option.modal.magnify ? 'flex' : 'none';
+                self.modalParts.duration = duration === undefined ? self.option.modal.resizeDuration : duration;
+                self.modalParts.easing = easing === undefined ? self.option.modal.resizeEasing : easing;
+                self.preventScroll(true);
+                resolve();
+            });
+        }).then(() => {
+            targets.forEach(target => {
                 let modalClone = target.cloneNode(true);
                 modalClone.classList.remove('rdx-modal-source');
                 modalClone.classList.add('rdx-modal-item');
                 self.modalParts.content.appendChild(modalClone);
-        });
-        self.preventScroll(true);
-
-        self.modalParts.magnifier.style.display = self.option.modal.magnify ? 'flex' : 'none';
-        self.modalParts.duration = duration === undefined ? self.option.modal.resizeDuration : duration;
-        self.modalParts.easing = easing === undefined ? self.option.modal.resizeEasing : easing;
-        self.modalParts.size = {
-            width: self.modalParts.content.offsetWidth,
-            height: self.modalParts.content.offsetHeight
-        };
-        self.modalParts.scale = 1;
-        if (scale !== null) {
-            self.modalParts.scale = self.floatRound(scale, 1);
-        } else if (self.option.modal.fit === true) {
-            let areaHeight = self.modalParts.area.clientHeight;
-            let areaWidth = self.modalParts.area.clientWidth;
-            self.modalParts.scale = self.option.modal.scaleStep[0];
-            for (let i = 0; i < self.modalParts.scaleStep.length; i++) {
-                if (self.modalParts.size.width * self.option.modal.scaleStep[i] > areaWidth || self.modalParts.size.height * self.option.modal.scaleStep[i] > areaHeight) break;
-                self.modalParts.scale = self.option.modal.scaleStep[i];
+            });
+            resolve();
+        }).then(() => {
+            self.modalParts.size = {
+                width: self.modalParts.content.offsetWidth,
+                height: self.modalParts.content.offsetHeight
+            };
+            resolve();
+        }).then(() => {
+            self.modalParts.scale = 1;
+            if (scale !== null) {
+                self.modalParts.scale = self.floatRound(scale, 1);
+            } else if (self.option.modal.fit === true) {
+                let areaHeight = self.modalParts.area.clientHeight;
+                let areaWidth = self.modalParts.area.clientWidth;
+                self.modalParts.scale = self.option.modal.scaleStep[0];
+                for (let i = 0; i < self.modalParts.scaleStep.length; i++) {
+                    if (self.modalParts.size.width * self.option.modal.scaleStep[i] > areaWidth || self.modalParts.size.height * self.option.modal.scaleStep[i] > areaHeight) break;
+                    self.modalParts.scale = self.option.modal.scaleStep[i];
+                }
             }
-        }
-
-        self.modalParts.content.style.transform = 'scale(' + self.modalParts.scale + ')';
-        self.modalParts.wrapper.style.height = 'min(' + self.floatCeil(self.modalParts.size.height * self.modalParts.scale, 0) + 'px, 100%)';
-        self.modalParts.wrapper.style.width = 'min(' + self.floatCeil(self.modalParts.size.width * self.modalParts.scale, 0) + 'px, 100%)';
-        self.modalParts.viewport.classList.add('active');
-        self.modalParts.scaleDisp.innerHTML = self.floatRound(self.modalParts.scale, 1) + 'x';
-        self.modalState = true;
-        document.dispatchEvent(self.events.beforeModalOpen);
+            resolve();
+        }).then(() => {
+            self.modalParts.content.style.transform = 'scale(' + self.modalParts.scale + ')';
+            self.modalParts.wrapper.style.height = 'min(' + self.floatCeil(self.modalParts.size.height * self.modalParts.scale, 0) + 'px, 100%)';
+            self.modalParts.wrapper.style.width = 'min(' + self.floatCeil(self.modalParts.size.width * self.modalParts.scale, 0) + 'px, 100%)';
+            self.modalParts.scaleDisp.innerHTML = self.floatRound(self.modalParts.scale, 1) + 'x';
+            self.modalParts.viewport.classList.add('active');
+            self.modalState = true;
+            resolve();
+        }).then(() => {
+            document.dispatchEvent(self.events.beforeModalOpen);
+            resolve();
+        });
     };
     /**
      * モーダルを閉じる
@@ -723,14 +738,27 @@ class radix {
     modalClose() {
         const self = this;
         if (!self.modalState) return;
-        document.dispatchEvent(self.events.beforeModalClose);
-        self.modalParts.viewport.classList.remove('active');
-        self.modalParts.content.innerHTML = '';
-        self.preventScroll(false);
-        self.modalParts.content.style = '';
-        self.modalParts.wrapper.style = '';
-        self.modalState = false;
-        document.dispatchEvent(self.events.afterModalClose);
+        const promise = new Promise(resolve => {
+            document.dispatchEvent(self.events.beforeModalOpen);
+            resolve();
+        });
+        promise.then(() => {
+            return new Promise(resolve => {
+                document.dispatchEvent(self.events.beforeModalClose);
+                resolve();
+            });
+        }).then(() => {
+            self.modalParts.viewport.classList.remove('active');
+            self.modalParts.content.innerHTML = '';
+            self.preventScroll(false);
+            self.modalParts.content.style = '';
+            self.modalParts.wrapper.style = '';
+            self.modalState = false;
+            resolve();
+        }).then(() => {
+            document.dispatchEvent(self.events.afterModalClose);
+            resolve();
+        });
     };
     /**
      * モーダルウィンドウの拡縮
