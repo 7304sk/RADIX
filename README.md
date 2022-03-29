@@ -2,20 +2,21 @@
 HTMLページを制作する際のレイアウト構成を補助するCSS・Javascriptライブラリ
 
 ## Contents
-- radix.css
+x.y.z = バージョン番号
+- radix.x.y.z.css  
 css 本体
-- radix.css
+- radix.x.y.z.min.css  
 css 本体（minify）
-- radix.js
+- radix.x.y.z.js  
 javascript 本体
-- radix.js
+- radix.x.y.z.min.js  
 javascript 本体（minify）
 
 ## Usage
 [See manual](https://radix-manual.netlify.app/)
 
 ## License
-under MIT License
+under MIT License  
 see [LICENSE.txt](https://github.com/7304sk/RADIX/blob/main/LICENSE.txt)
 
 ## Author
