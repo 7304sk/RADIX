@@ -1,5 +1,4 @@
 @charset "UTF-8";
-
 /************************************
 
     RADIX
@@ -25,7 +24,6 @@
     all: unset;
     display: revert;
 }
-
 *,
 *:before,
 *:after {
@@ -405,6 +403,15 @@ main p,
 }
 
 /* drag scroll */
+@keyframes rdx-drag-hint {
+    0% { transform: translate(0) }
+    5% { transform: translate(-7%) }
+    10% { transform: translate(7%) }
+    15% { transform: translate(-7%) }
+    20% { transform: translate(7%) }
+    25% { transform: translate(0) }
+}
+
 .rdx-drag-hint {
     display: grid;
     width: 100%;
@@ -415,15 +422,28 @@ main p,
     left: 0;
     z-index: 2;
     background: rgba(0, 0, 0, 0.3);
-    color: #fff;
-    line-height: 1;
-    font-size: 4rem;
     transition: .3s;
 }
 
-.rdx-drag-hint .radix-icon {
+.rdx-drag-hint-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     max-width: calc(100% - 2rem);
     max-height: calc(100% - 2rem);
+    color: #fff;
+    line-height: 1;
+    animation: rdx-drag-hint 2s infinite linear;
+    animation-delay: 1s;
+}
+
+.rdx-drag-hint .radix-icon {
+    height: auto;
+}
+
+.rdx-drag-hint .rdx-drag-hint-text {
+    padding: 0 .8rem;
+    font-size: 1.5em;
 }
 
 /* modal */
@@ -431,12 +451,10 @@ main p,
     --rmv-bg-color: rgba(0, 0, 0, 0.85);
     --rmv-text-color: #fff;
 }
-
 .rdx-modal-viewport.white {
     --rmv-bg-color: rgba(255, 255, 255, 0.85);
     --rmv-text-color: #666;
 }
-
 .rdx-modal-viewport {
     --rmv-bg-color: rgba(0, 0, 0, 0.85);
     --rmv-text-color: #fff;
@@ -446,11 +464,12 @@ main p,
     top: 0;
     left: 0;
     z-index: 2147483647;
-    padding: 5rem 1rem 2rem;
+    padding: 5em 1em 2em;
     background: var(--rmv-bg-color);
     opacity: 0;
     visibility: hidden;
     transition: .2s ease-in;
+    font-size: 16px;
 }
 
 .rdx-modal-viewport.active {
@@ -467,38 +486,85 @@ main p,
 
 .rdx-modal-toggles {
     display: flex;
-    align-items: center;
     position: absolute;
     top: 0;
     right: 0;
-    padding-left: 2rem;
+    transform: translateY(-100%);
+    opacity: 0;
     color: var(--rmv-text-color);
+    transition: .4s ease-out;
+}
+
+.rdx-modal-viewport.active .rdx-modal-toggles {
+    transform: translateY(0);
+    opacity: 1;
 }
 
 .rdx-modal-magnifier {
     display: flex;
     align-items: center;
-    gap: .5rem;
+    gap: .5em;
+    position: relative;
 }
 
 .rdx-modal-enlarge,
 .rdx-modal-shrink {
     display: block;
-    font-size: 2rem;
+    font-size: 2em;
     cursor: pointer;
 }
 
 .rdx-modal-scale {
-    margin-right: .5rem;
-    font-size: 1.3rem;
+    display: grid;
+    place-items: center;
+    height: 40px;
+    padding: 0 1em;
+    margin-right: .5em;
+    font-size: 1.3em;
     font-weight: 900;
     line-height: 1;
+    cursor: pointer;
+}
+
+.rdx-modal-scaler {
+    display: block;
+    height: 100%;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    padding: 20px 0;
+    background: var(--rmv-text-color);
+    color: var(--rmv-bg-color);
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transition: .1s ease-in;
+}
+
+.rdx-modal-scaler.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.rdx-modal-scaler li {
+    display: grid;
+    height: 40px;
+    place-items: center;
+    padding: 0 1em;
+    font-size: 1.3em;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+}
+.rdx-modal-scaler li:hover {
+    background: rgba(0, 0, 0, .3);
 }
 
 .rdx-modal-close {
-    height: 3rem;
-    width: 3rem;
-    margin: 1rem;
+    height: 3em;
+    width: 3em;
+    margin: 1em;
     cursor: pointer
 }
 
@@ -542,7 +608,7 @@ main p,
     transform-origin: top left;
 }
 
-.rdx-modal-content>img.rdx-modal-item {
+.rdx-modal-content > img.rdx-modal-item {
     display: block;
 }
 
