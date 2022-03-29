@@ -2,13 +2,13 @@
 HTMLページを制作する際のレイアウト構成を補助するCSS・Javascriptライブラリ
 
 ## Contents
-- radix.css  
+- radix.css
 css 本体
-- radix.css  
+- radix.css
 css 本体（minify）
-- radix.js   
+- radix.js
 javascript 本体
-- radix.js   
+- radix.js
 javascript 本体（minify）
 
 ## Usage
@@ -19,4 +19,4 @@ under MIT License
 see [LICENSE.txt](https://github.com/7304sk/RADIX/blob/main/LICENSE.txt)
 
 ## Author
-shoalwave : wave.ysk730@gmail.com
+shoalwave : shoalwave.dev@gmail.com
