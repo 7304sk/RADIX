@@ -770,7 +770,7 @@ class radix {
                     let areaHeight = self.modalParts.area.clientHeight;
                     let areaWidth = self.modalParts.area.clientWidth;
                     self.modalParts.scale = self.option.modal.scaleStep[0];
-                    for (let i = 0; i < self.modalParts.scaleStep.length; i++) {
+                    for (let i = 0; i < self.option.modal.scaleStep.length; i++) {
                         if (self.modalParts.size.width * self.option.modal.scaleStep[i] > areaWidth || self.modalParts.size.height * self.option.modal.scaleStep[i] > areaHeight) break;
                         self.modalParts.scale = self.option.modal.scaleStep[i];
                     }
