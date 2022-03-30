@@ -471,10 +471,10 @@ main p,
     left: 0;
     z-index: 2147483647;
     padding: 5em 1em 2em;
-    background: var(--rmv-bg-color);
+    background-color: var(--rmv-bg-color);
     opacity: 0;
     visibility: hidden;
-    transition: .2s ease-in;
+    transition: .2s ease-in all;
     font-size: 16px;
 }
 
