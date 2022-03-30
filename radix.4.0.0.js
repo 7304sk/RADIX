@@ -467,6 +467,7 @@ class radix {
                             closeButton: self.icons.cross.cloneNode(true),
                             toggles: document.createElement('div'),
                             magnifier: document.createElement('div'),
+                            magnify: self.option.modal.magnify,
                             enlarge: self.icons.zoom_in.cloneNode(true),
                             shrink: self.icons.zoom_out.cloneNode(true),
                             scaleDisp: document.createElement('div'),
@@ -476,12 +477,14 @@ class radix {
                                 width: 0,
                                 height: 0
                             },
+                            color: self.option.modal.color,
                             drag: self.option.modal.drag,
+                            fit: self.option.modal.fit,
                             duration: self.option.modal.resizeDuration,
                             easing: self.option.modal.resizeEasing
                         }
                         self.modalParts.viewport.classList.add('rdx-modal-viewport');
-                        self.modalParts.viewport.classList.add(self.option.modal.color);
+                        self.modalParts.viewport.classList.add(self.modalParts.color);
                         self.modalParts.area.classList.add('rdx-modal-area');
                         self.modalParts.wrapper.classList.add('rdx-modal-wrapper');
                         self.modalParts.content.classList.add('rdx-modal-content');
@@ -552,9 +555,14 @@ class radix {
                             }
                             modal.addEventListener('click', event => {
                                 event.preventDefault();
+                                let duration = modal.hasAttribute('data-modal-duration') ? modal.dataset.modalDuration : null;
+                                let easing = modal.hasAttribute('data-modal-easing') ? modal.dataset.modalEasing : null;
                                 let scale = modal.hasAttribute('data-modal-scale') ? modal.dataset.modalScale : null;
                                 let drag = modal.hasAttribute('data-modal-drag') ? modal.dataset.modalDrag : null;
-                                self.modalOpen(targets, modal.dataset.modalDuration, modal.dataset.modalEasing, scale, drag);
+                                let magnify = modal.hasAttribute('data-modal-magnify') ? modal.dataset.modalMagnify : null;
+                                let fit = modal.hasAttribute('data-modal-fit') ? modal.dataset.modalFit : null;
+                                let color = modal.hasAttribute('data-modal-color') ? modal.dataset.modalColor : null;
+                                self.modalOpen(targets, color, duration, easing, scale, drag, magnify, fit);
                             });
                         });
                         self.modalParts.viewport.addEventListener('mouseup', event => {
@@ -747,7 +755,7 @@ class radix {
      * @param {string} easing      拡縮アニメーションのイージング
      * @param {float}  scale       開いたときの拡大率
      */
-    modalOpen(targets, duration, easing, scale, drag) {
+    modalOpen(targets, color, duration, easing, scale, drag, magnify, fit) {
         const self = this;
         if (self.modalState) return;
         new Promise(resolve => {
@@ -756,7 +764,10 @@ class radix {
         }).then(() => {
             return new Promise(resolve => {
                 self.modalParts.content.innerHTML = '';
-                self.modalParts.magnifier.style.display = self.option.modal.magnify ? 'flex' : 'none';
+                self.modalParts.color = color !== null ? color : self.option.modal.color;
+                self.modalParts.magnify = magnify !== null ? magnify : self.option.modal.magnify;
+                self.modalParts.drag = drag !== null ? drag : self.option.modal.drag;
+                self.modalParts.fit = fit !== null ? fit : self.option.modal.fit;
                 self.modalParts.duration = duration === undefined ? self.option.modal.resizeDuration : duration;
                 self.modalParts.easing = easing === undefined ? self.option.modal.resizeEasing : easing;
                 self.preventScroll(true);
@@ -774,6 +785,7 @@ class radix {
             });
         }).then(() => {
             return new Promise(resolve => {
+                self.modalParts.magnifier.style.display = self.modalParts.magnify ? 'flex' : 'none';
                 self.modalParts.size = {
                     width: self.modalParts.content.offsetWidth,
                     height: self.modalParts.content.offsetHeight
@@ -785,7 +797,7 @@ class radix {
                 self.modalParts.scale = 1;
                 if (scale !== null) {
                     self.modalParts.scale = self.floatRound(scale, 1);
-                } else if (self.option.modal.fit === true) {
+                } else if (self.modalParts.fit == true) {
                     let areaHeight = self.modalParts.area.clientHeight;
                     let areaWidth = self.modalParts.area.clientWidth;
                     self.modalParts.scale = self.option.modal.scaleStep[0];
@@ -794,7 +806,6 @@ class radix {
                         self.modalParts.scale = self.option.modal.scaleStep[i];
                     }
                 }
-                self.modalParts.drag = drag !== null ? drag : self.option.modal.drag;
                 const modalDrag = v => { self.dragDown(self.modalParts.wrapper, v) };
                 if (self.modalParts.drag) {
                     self.modalParts.wrapper.addEventListener('mousedown', modalDrag, false);
