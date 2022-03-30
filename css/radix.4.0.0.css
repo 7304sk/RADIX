@@ -450,14 +450,20 @@ main p,
 .rdx-modal-viewport.black {
     --rmv-bg-color: rgba(0, 0, 0, 0.85);
     --rmv-text-color: #fff;
+    --rmv-light: rgba(255, 255, 255, .3);
+    --rmv-dark: rgba(0, 0, 0, .3);
 }
 .rdx-modal-viewport.white {
     --rmv-bg-color: rgba(255, 255, 255, 0.85);
     --rmv-text-color: #666;
+    --rmv-light: rgba(0, 0, 0, .3);
+    --rmv-dark: rgba(255, 255, 255, .3);
 }
 .rdx-modal-viewport {
     --rmv-bg-color: rgba(0, 0, 0, 0.85);
     --rmv-text-color: #fff;
+    --rmv-light: rgba(255, 255, 255, .3);
+    --rmv-dark: rgba(0, 0, 0, .3);
     height: 100%;
     width: 100%;
     position: fixed;
@@ -526,6 +532,9 @@ main p,
     line-height: 1;
     cursor: pointer;
 }
+.rdx-modal-scale:hover {
+    background: var(--rmv-light);
+}
 
 .rdx-modal-scaler {
     display: block;
@@ -559,7 +568,7 @@ main p,
     cursor: pointer;
 }
 .rdx-modal-scaler li:hover {
-    background: rgba(0, 0, 0, .3);
+    background: var(--rmv-dark);
 }
 
 .rdx-modal-close {
