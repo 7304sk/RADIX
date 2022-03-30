@@ -520,6 +520,7 @@ main p,
     height: 40px;
     padding: 0 1em;
     margin-right: .5em;
+    border: 3px solid currentColor;
     font-size: 1.3em;
     font-weight: 900;
     line-height: 1;
@@ -573,8 +574,6 @@ main p,
     max-width: 100%;
     max-height: 100%;
     overflow: auto;
-    padding: 7px;
-    box-sizing: content-box;
 }
 
 .rdx-modal-wrapper::-webkit-scrollbar {
@@ -597,6 +596,10 @@ main p,
 
 .rdx-modal-wrapper::-webkit-scrollbar-corner {
     background: transparent;
+}
+
+.rdx-modal-frame {
+    overflow: hidden;
 }
 
 .rdx-modal-content {
