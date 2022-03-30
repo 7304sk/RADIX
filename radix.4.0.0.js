@@ -16,6 +16,7 @@
  * @property {object}   modalParts     モーダルウィンドウ機能で生成しているエレメントノードたち
  * @property {object}   events         各操作に対して発火しているイベントフックたち
  * @property {object}   icons          SVGアイコンの全ノード
+ * @property {boolean}  isMobile       モバイル端末（タッチ操作可能）か否か
  * @property {boolean}  navState       ナビゲーションの開閉状態
  * @property {boolean}  modalState     モーダルウィンドウの開閉状態
  * @property {boolean}  windowLoaded   HTML内の要素をブラウザが読み込み完了したか
@@ -23,6 +24,10 @@
  * @property {function} init           radixの初期化を行う関数
  * @property {function} toggleNav      ナビゲーション開閉を実行する関数
  * @property {function} smoothScroll   スムーススクロールを実行する関数
+ * @property {function} replaceIcon    SVGアイコンにエレメントを置換する関数
+ * @property {function} dragDown       ドラッグスクロールのマウスダウン
+ * @property {function} dragMove       ドラッグスクロールのマウスムーブ
+ * @property {function} dragUp         ドラッグスクロールのマウスアップ
  * @property {function} modalOpen      モーダルウィンドウを開く関数
  * @property {function} modalClose     モーダルウィンドウを閉じる関数
  * @property {function} modalResize    モーダルウィンドウの拡縮をする関数
@@ -84,7 +89,8 @@ class radix {
                 resizeDuration: 300,
                 resizeEasing: 'easeInOutBack',
                 scaleStep: [0.2, 0.4, 0.6, 0.8, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5],
-                fit: false,
+                fit: true,
+                drag: true,
                 magnify: true
             },
             scrollAppear: {
@@ -110,6 +116,7 @@ class radix {
         this.modalState = false;
         this.initialized = false;
         this.windowLoaded = false;
+        this.isMobile = typeof window.ontouchstart === "undefined" ? false : true;
     }
     events = {
         beforeInitialize: new CustomEvent('_radixInit'),
@@ -353,65 +360,35 @@ class radix {
                 }
                 // drag scroll
                 if (self.option.dragScroll.active && self.option.dragScroll.selector !== '') {
-                    let dragScrollWrapper = document.querySelectorAll(self.option.dragScroll.selector);
+                    let dragScrollWrapper = Array.from(document.querySelectorAll(self.option.dragScroll.selector));
+                    let toggleHint = () => {
+                        let target = document.querySelector('[rdx-drag-on="true"]');
+                        if (target !== null) {
+                            let thisHint = target.querySelector('.rdx-drag-hint');
+                            if (thisHint !== null && (target.scrollLeft > 0 || target.scrollWidth === target.clientWidth)) {
+                                thisHint.classList.add('hide');
+                            }
+                        }
+                    };
+                    let scrollHint = document.createElement('div');
+                    scrollHint.classList.add('rdx-drag-hint');
+                    let scrollHintInner = document.createElement('div');
+                    scrollHintInner.classList.add('rdx-drag-hint-inner');
+                    scrollHint.appendChild(scrollHintInner);
+                    scrollHintInner.innerHTML = '<div class="rdx-drag-hint-text">DRAG</div>';
+                    scrollHintInner.prepend(self.icons.arrow_lr.cloneNode(true));
+
                     if (dragScrollWrapper.length > 0) {
-                        let downEvent = (elm, event) => {
-                            elm.style.cursor = 'move';
-                            elm.setAttribute('rdx-drag-on', true);
-                            elm.setAttribute('rdx-drag-scrolled-x', elm.scrollLeft);
-                            elm.setAttribute('rdx-drag-scrolled-y', elm.scrollTop);
-                            elm.setAttribute('rdx-drag-click-x', event.clientX);
-                            elm.setAttribute('rdx-drag-click-y', event.clientY);
-                        };
-                        let moveEvent = event => {
-                            let target = document.querySelector('[rdx-drag-on="true"]');
-                            if (target !== null) {
-                                event.preventDefault();
-                                target.scrollLeft = Number(target.getAttribute('rdx-drag-scrolled-x')) + Number(target.getAttribute('rdx-drag-click-x')) - event.clientX;
-                                target.scrollTop = Number(target.getAttribute('rdx-drag-scrolled-y')) + Number(target.getAttribute('rdx-drag-click-y')) - event.clientY;
-                            }
-                        };
-                        let upEvent = () => {
-                            dragScrollWrapper.forEach(e => {
-                                e.style.cursor = '';
-                                e.setAttribute('rdx-drag-on', false);
-                            });
-                        };
-                        let toggleHint = () => {
-                            let target = document.querySelector('[rdx-drag-on="true"]');
-                            if (target !== null) {
-                                let thisHint = target.querySelector('.rdx-drag-hint');
-                                if (thisHint !== null && (target.scrollLeft > 0 || target.scrollWidth === target.clientWidth)) {
-                                    thisHint.classList.add('hide');
-                                }
-                            }
-                        };
-
-                        let scrollHint = document.createElement('div');
-                        scrollHint.classList.add('rdx-drag-hint');
-                        let scrollHintInner = document.createElement('div');
-                        scrollHintInner.classList.add('rdx-drag-hint-inner');
-                        scrollHint.appendChild(scrollHintInner);
-                        scrollHintInner.innerHTML = '<div class="rdx-drag-hint-text">DRAG</div>';
-                        scrollHintInner.prepend(self.icons.arrow_lr.cloneNode(true));
-                        document.addEventListener('mousemove', toggleHint, false);
-                        document.addEventListener('touchmove', toggleHint, false);
-
                         dragScrollWrapper.forEach(e => {
                             e.style.overflow = 'auto';
                             e.style.position = 'relative';
-                            e.addEventListener('mousedown', v => { downEvent(e, v) }, false);
-                            e.addEventListener('touchstart', v => { downEvent(e, v) }, false);
-                            e.addEventListener('touchend', () => { upEvent(e) }, false);
-                            if (e.scrollWidth > e.clientWidth) {
-                                if (self.option.dragScroll.hint) {
-                                    e.appendChild(scrollHint.cloneNode(true));
-                                }
-                            }
+                            e.addEventListener('mousedown', v => { self.dragDown(e, v) }, false);
+                            if (e.scrollWidth > e.clientWidth && self.option.dragScroll.hint) e.appendChild(scrollHint.cloneNode(true));
                         });
-                        document.addEventListener('mousemove', v => { moveEvent(v) }, false);
-                        document.addEventListener('mouseup', () => { upEvent() }, false);
                     }
+                    document.addEventListener('touchmove', toggleHint, false);
+                    document.addEventListener('mousemove', v => { toggleHint; self.dragMove(v) }, false);
+                    document.addEventListener('mouseup', v => { self.dragUp(v) }, false);
                 }
                 // flex fix
                 if (self.option.flexFix.active) {
@@ -485,6 +462,7 @@ class radix {
                             viewport: document.createElement('div'),
                             area: document.createElement('div'),
                             wrapper: document.createElement('div'),
+                            frame: document.createElement('div'),
                             content: document.createElement('div'),
                             closeButton: self.icons.cross.cloneNode(true),
                             toggles: document.createElement('div'),
@@ -498,6 +476,7 @@ class radix {
                                 width: 0,
                                 height: 0
                             },
+                            drag: self.option.modal.drag,
                             duration: self.option.modal.resizeDuration,
                             easing: self.option.modal.resizeEasing
                         }
@@ -506,11 +485,13 @@ class radix {
                         self.modalParts.area.classList.add('rdx-modal-area');
                         self.modalParts.wrapper.classList.add('rdx-modal-wrapper');
                         self.modalParts.content.classList.add('rdx-modal-content');
+                        self.modalParts.frame.classList.add('rdx-modal-frame');
                         self.modalParts.toggles.classList.add('rdx-modal-toggles');
                         self.modalParts.viewport.appendChild(self.modalParts.toggles);
                         self.modalParts.viewport.appendChild(self.modalParts.area);
                         self.modalParts.area.appendChild(self.modalParts.wrapper);
-                        self.modalParts.wrapper.appendChild(self.modalParts.content);
+                        self.modalParts.wrapper.appendChild(self.modalParts.frame);
+                        self.modalParts.frame.appendChild(self.modalParts.content);
                         self.modalParts.magnifier.classList.add('rdx-modal-magnifier');
                         self.modalParts.enlarge.classList.add('rdx-modal-enlarge');
                         self.modalParts.shrink.classList.add('rdx-modal-shrink');
@@ -542,7 +523,6 @@ class radix {
                                 self.modalParts.scale = scale;
                             });
                         });
-
                         self.modalParts.enlarge.addEventListener('click', event => {
                             event.preventDefault();
                             let i = self.option.modal.scaleStep.indexOf(self.modalParts.scale);
@@ -557,7 +537,6 @@ class radix {
                             self.modalResize(aftScale);
                             self.modalParts.scale = aftScale;
                         });
-
                         modals.forEach(modal => {
                             let targets = [];
                             if (modal.hasAttribute('data-modal-target')) {
@@ -574,11 +553,11 @@ class radix {
                             modal.addEventListener('click', event => {
                                 event.preventDefault();
                                 let scale = modal.hasAttribute('data-modal-scale') ? modal.dataset.modalScale : null;
-                                self.modalOpen(targets, modal.dataset.modalDuration, modal.dataset.modalEasing, scale);
+                                let drag = modal.hasAttribute('data-modal-drag') ? modal.dataset.modalDrag : null;
+                                self.modalOpen(targets, modal.dataset.modalDuration, modal.dataset.modalEasing, scale, drag);
                             });
                         });
-
-                        self.modalParts.viewport.addEventListener('click', event => {
+                        self.modalParts.viewport.addEventListener('mouseup', event => {
                             let clicked = event.target;
                             if (!clicked.classList.contains('rdx-modal-item')) {
                                 if (clicked.closest('.rdx-modal-content') === null && clicked.closest('.rdx-modal-toggles') === null) {
@@ -598,10 +577,10 @@ class radix {
     };
     /**
      * スムーススクロール
-     * @param {float} scrollFrom スクロールの始点
-     * @param {float} scrollTo スクロールの終点
-     * @param {int} duration スクロールにかける時間（ミリ秒）
-     * @param {string} easingName スクロールアニメーションのイージング
+     * @param {float}  scrollFrom    スクロールの始点
+     * @param {float}  scrollTo      スクロールの終点
+     * @param {int}    duration      スクロールにかける時間（ミリ秒）
+     * @param {string} easingName    スクロールアニメーションのイージング
      */
     smoothScroll(scrollFrom, scrollTo, duration, easingName) {
         const self = this;
@@ -630,7 +609,7 @@ class radix {
     };
     /**
      * ページスクロールのオンオフ
-     * @param {boolean} mode 禁止する（true）、禁止しない（false）
+     * @param {boolean} mode    禁止する（true）、禁止しない（false）
      */
     preventScroll(mode) {
         this.DOM_ROOTS.forEach(e => {
@@ -643,7 +622,7 @@ class radix {
     };
     /**
      * ナビゲーション開閉
-     * @param {boolean | string} mode 開ける(false)か閉じる(true)か
+     * @param {boolean | string} mode    開ける(false)か閉じる(true)か
      */
     toggleNav(mode) {
         const self = this;
@@ -710,7 +689,7 @@ class radix {
     };
     /**
      * SVG iconに置き換える
-     * @param {element} icon SVGに置き換える対象
+     * @param {element} icon    SVGに置き換える対象
      */
     replaceIcon(target, icon) {
         const self = this;
@@ -722,13 +701,53 @@ class radix {
         }
     };
     /**
-     * モーダルを開く
-     * @param {array} targets 開く対象のエレメントの配列
-     * @param {int} duration 拡縮にかける時間
-     * @param {string} easing 拡縮アニメーションのイージング
-     * @param {float} scale 開いたときの拡大率
+     * ドラッグスクロールのマウスダウンイベント
+     * @param {elemnt} e    スクロール領域のエレメント
+     * @param {event}  v    マウスダウンイベント
      */
-    modalOpen(targets, duration, easing, scale) {
+    dragDown(e, v) {
+        if(!self.isMobile) {
+            e.style.cursor = 'move';
+            e.setAttribute('rdx-drag-on', true);
+            e.setAttribute('rdx-drag-scrolled-x', e.scrollLeft);
+            e.setAttribute('rdx-drag-scrolled-y', e.scrollTop);
+            e.setAttribute('rdx-drag-click-x', v.clientX);
+            e.setAttribute('rdx-drag-click-y', v.clientY);
+        }
+    };
+    /**
+     * ドラッグスクロールのマウスムーブイベント
+     * @param {event} v    マウスムーブイベント
+     */
+    dragMove(v) {
+        let target = document.querySelector('[rdx-drag-on="true"]');
+        if (target !== null) {
+            v.preventDefault();
+            target.scrollLeft = Number(target.getAttribute('rdx-drag-scrolled-x')) + Number(target.getAttribute('rdx-drag-click-x')) - v.clientX;
+            target.scrollTop = Number(target.getAttribute('rdx-drag-scrolled-y')) + Number(target.getAttribute('rdx-drag-click-y')) - v.clientY;
+        }
+    };
+    /**
+     * ドラッグスクロールのマウスアップイベント
+     * @param {event} v    マウスアップイベント
+     */
+    dragUp(v) {
+        v.preventDefault();
+        v.stopImmediatePropagation();
+        let target = document.querySelector('[rdx-drag-on="true"]');
+        if (target) {
+            target.style.cursor = '';
+            target.setAttribute('rdx-drag-on', false);
+        }
+    };
+    /**
+     * モーダルを開く
+     * @param {array}  targets     開く対象のエレメントの配列
+     * @param {int}    duration    拡縮にかける時間
+     * @param {string} easing      拡縮アニメーションのイージング
+     * @param {float}  scale       開いたときの拡大率
+     */
+    modalOpen(targets, duration, easing, scale, drag) {
         const self = this;
         if (self.modalState) return;
         new Promise(resolve => {
@@ -775,6 +794,13 @@ class radix {
                         self.modalParts.scale = self.option.modal.scaleStep[i];
                     }
                 }
+                self.modalParts.drag = drag !== null ? drag : self.option.modal.drag;
+                const modalDrag = v => { self.dragDown(self.modalParts.wrapper, v) };
+                if (self.modalParts.drag) {
+                    self.modalParts.wrapper.addEventListener('mousedown', modalDrag, false);
+                } else {
+                    self.modalParts.wrapper.removeEventListener('mousedown', modalDrag, false);
+                }
                 resolve();
             });
         }).then(() => {
@@ -783,6 +809,8 @@ class radix {
                 self.modalParts.wrapper.style.height = 'min(' + self.floatCeil(self.modalParts.size.height * self.modalParts.scale, 0) + 'px, 100%)';
                 self.modalParts.wrapper.style.width = 'min(' + self.floatCeil(self.modalParts.size.width * self.modalParts.scale, 0) + 'px, 100%)';
                 self.modalParts.scaleDisp.innerHTML = self.floatRound(self.modalParts.scale, 1) + 'x';
+                self.modalParts.frame.style.height = self.floatCeil(self.modalParts.size.height * self.modalParts.scale, 0) + 'px';
+                self.modalParts.frame.style.width = self.floatCeil(self.modalParts.size.width * self.modalParts.scale, 0) + 'px';
                 self.modalParts.viewport.classList.add('active');
                 self.modalState = true;
                 resolve();
@@ -797,6 +825,7 @@ class radix {
     modalClose() {
         const self = this;
         if (!self.modalState) return;
+        if (self.modalParts.wrapper.getAttribute('rdx-drag-on') === 'true') return;
         new Promise(resolve => {
                 document.dispatchEvent(self.events.beforeModalClose);
                 resolve();
@@ -807,6 +836,7 @@ class radix {
                 self.modalParts.content.innerHTML = '';
                 self.preventScroll(false);
                 self.modalParts.content.style = '';
+                self.modalParts.frame.style = '';
                 self.modalParts.wrapper.style = '';
                 self.modalState = false;
                 resolve();
@@ -817,7 +847,7 @@ class radix {
     };
     /**
      * モーダルウィンドウの拡縮
-     * @param {float} aftScale 操作後の倍率
+     * @param {float} aftScale    操作後の倍率
      */
     modalResize(aftScale) {
         const self = this;
@@ -849,10 +879,14 @@ class radix {
             self.modalParts.content.style.transform = 'scale(' + nowScale + ')';
             self.modalParts.wrapper.style.width = 'min(' + nowWidth + 'px, 100%)';
             self.modalParts.wrapper.style.height = 'min(' + nowHeight + 'px, 100%)';
+            self.modalParts.frame.style.height = nowHeight + 'px';
+            self.modalParts.frame.style.width = nowWidth + 'px';
             if (elapsedTime > duration) {
                 self.modalParts.content.style.transform = 'scale(' + self.floatRound(aftScale, 1) + ')';
                 self.modalParts.wrapper.style.height = 'min(' + self.floatCeil(aftHeight, 0) + 'px, 100%)';
                 self.modalParts.wrapper.style.width = 'min(' + self.floatCeil(aftWidth, 0) + 'px, 100%)';
+                self.modalParts.frame.style.height = self.floatCeil(aftHeight, 0) + 'px';
+                self.modalParts.frame.style.width = self.floatCeil(aftWidth, 0) + 'px';
                 clearInterval(timer);
             }
         }
@@ -862,17 +896,17 @@ class radix {
     };
     /**
      * 型の判定
-     * @param {operand} obj 判定したいもの
-     * @return {string} 型名
+     * @param {operand} obj    判定したいもの
+     * @return {string}        型名
      */
     typeJudge(obj) {
         return toString.call(obj).slice(8, -1).toLowerCase();
     };
     /**
      * 少数の桁変換
-     * @param {float} x 対象となる少数
-     * @param {int} digit 切り上げる小数点
-     * @return {string} フィックスされた少数文字列
+     * @param {float}   x        対象となる少数
+     * @param {int}     digit    切り上げる小数点
+     * @return {string}          フィックスされた少数文字列
      */
     floatRound(num, digit) {
         digit = digit === undefined ? 2 : Number.parseInt(digit);
@@ -894,8 +928,8 @@ class radix {
     };
     /**
      * イージング関数を取得する関数
-     * @param {string} easingName イージング関数の名称
-     * @return {function} イージング関数
+     * @param {string}    easingName    イージング関数の名称
+     * @return {function}               イージング関数
      */
     getEasing(easingName) {
         let ease;
