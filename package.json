@@ -1,5 +1,5 @@
 {
-  "name": "radix_library",
+  "name": "radix-library",
   "version": "4.0.0",
   "description": "CSS and Javascript library to initialize pages.",
   "main": "radix.js",
