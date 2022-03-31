@@ -1,4 +1,4 @@
-RADIX - Version : 4.0.0
+RADIX - Version : 4.0.2
 https://radix-manual.netlify.app/
 
 Copyright 2021 shoalwave
