@@ -37,7 +37,7 @@
  * @property {function} preventScroll  ページ全体の縦方向スクロール禁止を操作する関数
  * @property {function} getEasing      イージング関数を取得する関数
  */
-class radix {
+class Radix {
     /**
      * コンストラクタ
      * @constructor

@@ -3,7 +3,7 @@ window.FontAwesomeConfig = { searchPseudoElements: true };
 
 window.addEventListener('DOMContentLoaded', () => {
     // Radix js の初期化、追加スクリプト
-    let myRadix = new radix({
+    const radix = new Radix({
         toggleNav: {
             active: false,
             trigger: '',
@@ -14,5 +14,5 @@ window.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('radixInit_', () => {
         // 追加のスクリプトはこの中に記述する
     });
-    myRadix.init();
+    radix.init();
 });
