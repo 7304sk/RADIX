@@ -37,6 +37,10 @@
  * @property {function} preventScroll  ページ全体の縦方向スクロール禁止を操作する関数
  * @property {function} getEasing      イージング関数を取得する関数
  */
+let DOMLoaded = false;
+let windowLoaded = false;
+window.addEventListener('DOMContentLoaded',() => {DOMLoaded = true});
+window.addEventListener('load',() => {windowLoaded = true});
 class Radix {
     /**
      * コンストラクタ
@@ -140,7 +144,11 @@ class Radix {
         new Promise(resolve => {
             // Speed 0
             document.dispatchEvent(self.events.beforeInitialize);
-            window.addEventListener('DOMContentLoaded', resolve);
+            if (DOMLoaded) {
+                resolve();
+            } else {
+                window.addEventListener('DOMContentLoaded', resolve);
+            }
         }).then(() => {
             // Speed 1
             return new Promise(resolve => {
@@ -149,7 +157,6 @@ class Radix {
                 if (self.option.preload.preventScroll) self.preventScroll(true);
                 let preloader = self.option.preload.selector.length > 0 ? document.querySelectorAll(self.option.preload.selector) : [];
                 window.addEventListener('load', () => {
-                    self.windowLoaded = true;
                     if (self.option.preload.active && preloader && self.initialized) {
                         setTimeout(() => {
                             if (self.option.preload.preventScroll) self.preventScroll(false);
@@ -161,7 +168,7 @@ class Radix {
                 });
                 document.addEventListener('radixInit_', () => {
                     self.initialized = true;
-                    if (self.option.preload.active && preloader.length > 0 && self.windowLoaded) {
+                    if (self.option.preload.active && preloader.length > 0 && windowLoaded) {
                         setTimeout(() => {
                             if (self.option.preload.preventScroll) self.preventScroll(false);
                             preloader.forEach(pl => {
