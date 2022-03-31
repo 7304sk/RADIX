@@ -137,14 +137,14 @@ class Radix {
      */
     init() {
         const self = this;
-        self.DOM_ROOTS = document.querySelectorAll('html,body');
         new Promise(resolve => {
             // Speed 0
             document.dispatchEvent(self.events.beforeInitialize);
-            resolve();
+            window.addEventListener('DOMContentLoaded', resolve);
         }).then(() => {
             // Speed 1
             return new Promise(resolve => {
+                self.DOM_ROOTS = document.querySelectorAll('html,body');
                 // preload display
                 if (self.option.preload.preventScroll) self.preventScroll(true);
                 let preloader = self.option.preload.selector.length > 0 ? document.querySelectorAll(self.option.preload.selector) : [];
