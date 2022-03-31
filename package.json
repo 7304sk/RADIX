@@ -1,0 +1,19 @@
+{
+  "name": "radix",
+  "version": "4.0.0",
+  "description": "CSS and Javascript library to initialize pages.",
+  "main": "radix.4.0.0.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/7304sk/radix.git"
+  },
+  "author": "shoalwave <shoalwave.dev@gmail.com> (https://shoalwave.net/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/7304sk/radix/issues"
+  },
+  "homepage": "https://radix.shoalwave.net/"
+}
