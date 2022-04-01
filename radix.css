@@ -2,7 +2,7 @@
 /************************************
 
     RADIX
-    - Version : 4.0.0
+    - Version : 4.0.1
 
     Copyright 2021 shoalwave and other contributors.
     Released under the MIT License.
@@ -282,7 +282,7 @@ main p,
     opacity: 1
 }
 
-.modal-visible:not(.rdx-modal-target) {
+.radix-modal-visible:not(.rdx-modal-item) {
     display: none !important
 }
 
@@ -447,18 +447,6 @@ main p,
 }
 
 /* modal */
-.rdx-modal-viewport.black {
-    --rmv-bg-color: rgba(0, 0, 0, 0.85);
-    --rmv-text-color: #fff;
-    --rmv-light: rgba(255, 255, 255, .3);
-    --rmv-dark: rgba(0, 0, 0, .3);
-}
-.rdx-modal-viewport.white {
-    --rmv-bg-color: rgba(255, 255, 255, 0.85);
-    --rmv-text-color: #666;
-    --rmv-light: rgba(0, 0, 0, .3);
-    --rmv-dark: rgba(255, 255, 255, .3);
-}
 .rdx-modal-viewport {
     --rmv-bg-color: rgba(0, 0, 0, 0.85);
     --rmv-text-color: #fff;
@@ -474,8 +462,32 @@ main p,
     background-color: var(--rmv-bg-color);
     opacity: 0;
     visibility: hidden;
-    transition: .2s ease-in all;
+    transition: .2s ease-in opacity, .2s ease-in visibility;
     font-size: 16px;
+}
+.rdx-modal-viewport.black {
+    --rmv-bg-color: rgba(0, 0, 0, 0.85);
+    --rmv-text-color: #fff;
+    --rmv-light: rgba(255, 255, 255, .3);
+    --rmv-dark: rgba(0, 0, 0, .3);
+}
+.rdx-modal-viewport.white {
+    --rmv-bg-color: rgba(255, 255, 255, 0.85);
+    --rmv-text-color: #666;
+    --rmv-light: rgba(0, 0, 0, .3);
+    --rmv-dark: rgba(255, 255, 255, .3);
+}
+.rdx-modal-viewport.black-opacity {
+    --rmv-bg-color: rgba(0, 0, 0, 1);
+    --rmv-text-color: #fff;
+    --rmv-light: rgba(255, 255, 255, .3);
+    --rmv-dark: rgba(0, 0, 0, .3);
+}
+.rdx-modal-viewport.white-opacity {
+    --rmv-bg-color: rgba(255, 255, 255, 1);
+    --rmv-text-color: #666;
+    --rmv-light: rgba(0, 0, 0, .3);
+    --rmv-dark: rgba(255, 255, 255, .3);
 }
 
 .rdx-modal-viewport.active {
@@ -613,9 +625,7 @@ main p,
 
 .rdx-modal-content {
     width: max-content;
-    max-width: 1400px;
     height: max-content;
-    max-height: 2200px;
     cursor: default;
     transform-origin: top left;
 }

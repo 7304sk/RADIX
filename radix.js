@@ -1,7 +1,7 @@
 /************************************
 
     RADIX
-    - Version : 4.0.0
+    - Version : 4.0.1
 
     Copyright 2021 shoalwave and other contributors.
     Released under the MIT License.
@@ -19,7 +19,6 @@
  * @property {boolean}  isMobile       モバイル端末（タッチ操作可能）か否か
  * @property {boolean}  navState       ナビゲーションの開閉状態
  * @property {boolean}  modalState     モーダルウィンドウの開閉状態
- * @property {boolean}  windowLoaded   HTML内の要素をブラウザが読み込み完了したか
  * @property {boolean}  initialized    init() 関数の実行が完了したか
  * @property {function} init           radixの初期化を行う関数
  * @property {function} toggleNav      ナビゲーション開閉を実行する関数
@@ -89,13 +88,14 @@ class Radix {
             modal: {
                 active: true,
                 selector: '.radix-modal',
-                color: 'white',
+                class: 'white',
                 resizeDuration: 300,
                 resizeEasing: 'easeInOutBack',
                 scaleStep: [0.2, 0.4, 0.6, 0.8, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5],
                 fit: true,
                 drag: true,
-                magnify: true
+                magnify: true,
+                wrap: false
             },
             scrollAppear: {
                 active: true,
@@ -119,7 +119,6 @@ class Radix {
         this.navState = false;
         this.modalState = false;
         this.initialized = false;
-        this.windowLoaded = false;
         this.isMobile = typeof window.ontouchstart === "undefined" ? false : true;
     }
     events = {
@@ -484,14 +483,13 @@ class Radix {
                                 width: 0,
                                 height: 0
                             },
-                            color: self.option.modal.color,
+                            class: self.option.modal.class,
                             drag: self.option.modal.drag,
                             fit: self.option.modal.fit,
                             duration: self.option.modal.resizeDuration,
                             easing: self.option.modal.resizeEasing
                         }
                         self.modalParts.viewport.classList.add('rdx-modal-viewport');
-                        self.modalParts.viewport.classList.add(self.modalParts.color);
                         self.modalParts.area.classList.add('rdx-modal-area');
                         self.modalParts.wrapper.classList.add('rdx-modal-wrapper');
                         self.modalParts.content.classList.add('rdx-modal-content');
@@ -568,8 +566,9 @@ class Radix {
                                 let drag = modal.hasAttribute('data-modal-drag') ? modal.dataset.modalDrag : null;
                                 let magnify = modal.hasAttribute('data-modal-magnify') ? modal.dataset.modalMagnify : null;
                                 let fit = modal.hasAttribute('data-modal-fit') ? modal.dataset.modalFit : null;
-                                let color = modal.hasAttribute('data-modal-color') ? modal.dataset.modalColor : null;
-                                self.modalOpen(targets, color, duration, easing, scale, drag, magnify, fit);
+                                let Class = modal.hasAttribute('data-modal-class') ? modal.dataset.modalClass : null;
+                                let wrap = modal.hasAttribute('data-modal-wrap') ? modal.dataset.modalWrap : null;
+                                self.modalOpen(targets, Class, duration, easing, scale, drag, magnify, fit, wrap);
                             });
                         });
                         self.modalParts.viewport.addEventListener('mouseup', event => {
@@ -757,12 +756,17 @@ class Radix {
     };
     /**
      * モーダルを開く
-     * @param {array}  targets     開く対象のエレメントの配列
-     * @param {int}    duration    拡縮にかける時間
-     * @param {string} easing      拡縮アニメーションのイージング
-     * @param {float}  scale       開いたときの拡大率
+     * @param {array}   targets     開く対象のエレメントの配列
+     * @param {string}  Class       viewport に追加するCSSクラス
+     * @param {int}     duration    拡縮にかける時間
+     * @param {string}  easing      拡縮アニメーションのイージング
+     * @param {float}   scale       開いたときの拡大率
+     * @param {boolean} drag        ドラッグスクロールを可能にするか
+     * @param {boolean} magnify     拡縮ボタンを表示するか
+     * @param {boolean} fit         展開時にスケールを自動調整するか
+     * @param {boolean} wrap        折り返しモードで開くか
      */
-    modalOpen(targets, color, duration, easing, scale, drag, magnify, fit) {
+    modalOpen(targets, Class, duration, easing, scale, drag, magnify, fit, wrap) {
         const self = this;
         if (self.modalState) return;
         new Promise(resolve => {
@@ -771,12 +775,15 @@ class Radix {
         }).then(() => {
             return new Promise(resolve => {
                 self.modalParts.content.innerHTML = '';
-                self.modalParts.color = color !== null ? color : self.option.modal.color;
                 self.modalParts.magnify = magnify !== null ? magnify : self.option.modal.magnify;
                 self.modalParts.drag = drag !== null ? drag : self.option.modal.drag;
                 self.modalParts.fit = fit !== null ? fit : self.option.modal.fit;
                 self.modalParts.duration = duration === undefined ? self.option.modal.resizeDuration : duration;
                 self.modalParts.easing = easing === undefined ? self.option.modal.resizeEasing : easing;
+                self.modalParts.wrap = wrap === undefined ? self.option.modal.wrap : wrap;
+                let classArr = Class !== null ? Class : self.option.modal.class;
+                classArr = String(classArr).split(' ');
+                self.modalParts.class = classArr;
                 self.preventScroll(true);
                 resolve();
             });
@@ -792,7 +799,7 @@ class Radix {
             });
         }).then(() => {
             return new Promise(resolve => {
-                self.modalParts.magnifier.style.display = self.modalParts.magnify ? 'flex' : 'none';
+                self.modalParts.magnifier.style.display = self.str2bool(self.modalParts.magnify) && !self.str2bool(self.modalParts.wrap) ? 'flex' : 'none';
                 self.modalParts.size = {
                     width: self.modalParts.content.offsetWidth,
                     height: self.modalParts.content.offsetHeight
@@ -804,7 +811,7 @@ class Radix {
                 self.modalParts.scale = 1;
                 if (scale !== null) {
                     self.modalParts.scale = self.floatRound(scale, 1);
-                } else if (self.modalParts.fit == true) {
+                } else if (self.str2bool(self.modalParts.fit)) {
                     let areaHeight = self.modalParts.area.clientHeight;
                     let areaWidth = self.modalParts.area.clientWidth;
                     self.modalParts.scale = self.option.modal.scaleStep[0];
@@ -814,7 +821,7 @@ class Radix {
                     }
                 }
                 const modalDrag = v => { self.dragDown(self.modalParts.wrapper, v) };
-                if (self.modalParts.drag) {
+                if (self.str2bool(self.modalParts.drag) && !self.str2bool(self.modalParts.wrap)) {
                     self.modalParts.wrapper.addEventListener('mousedown', modalDrag, false);
                 } else {
                     self.modalParts.wrapper.removeEventListener('mousedown', modalDrag, false);
@@ -823,18 +830,26 @@ class Radix {
             });
         }).then(() => {
             return new Promise(resolve => {
-                self.modalParts.content.style.transform = 'scale(' + self.modalParts.scale + ')';
-                self.modalParts.wrapper.style.height = 'min(' + self.floatCeil(self.modalParts.size.height * self.modalParts.scale, 0) + 'px, 100%)';
-                self.modalParts.wrapper.style.width = 'min(' + self.floatCeil(self.modalParts.size.width * self.modalParts.scale, 0) + 'px, 100%)';
-                self.modalParts.scaleDisp.innerHTML = self.floatRound(self.modalParts.scale, 1) + 'x';
-                self.modalParts.frame.style.height = self.floatCeil(self.modalParts.size.height * self.modalParts.scale, 0) + 'px';
-                self.modalParts.frame.style.width = self.floatCeil(self.modalParts.size.width * self.modalParts.scale, 0) + 'px';
+                if (self.str2bool(self.modalParts.wrap)) {
+                    self.modalParts.content.style.maxHeight = '100%';
+                    self.modalParts.content.style.maxWidth = '100%';
+                } else {
+                    self.modalParts.content.style.transform = 'scale(' + self.modalParts.scale + ')';
+                    self.modalParts.wrapper.style.height = 'min(' + self.floatCeil(self.modalParts.size.height * self.modalParts.scale, 0) + 'px, 100%)';
+                    self.modalParts.wrapper.style.width = 'min(' + self.floatCeil(self.modalParts.size.width * self.modalParts.scale, 0) + 'px, 100%)';
+                    self.modalParts.scaleDisp.innerHTML = self.floatRound(self.modalParts.scale, 1) + 'x';
+                    self.modalParts.frame.style.height = self.floatCeil(self.modalParts.size.height * self.modalParts.scale, 0) + 'px';
+                    self.modalParts.frame.style.width = self.floatCeil(self.modalParts.size.width * self.modalParts.scale, 0) + 'px';
+                }
+                self.modalParts.class.forEach(c => {
+                    self.modalParts.viewport.classList.add(c);
+                });
                 self.modalParts.viewport.classList.add('active');
                 self.modalState = true;
                 resolve();
             });
         }).then(() => {
-            document.dispatchEvent(self.events.beforeModalOpen);
+            document.dispatchEvent(self.events.afterModalOpen);
         });
     };
     /**
@@ -850,12 +865,17 @@ class Radix {
         }).then(() => {
             return new Promise(resolve => {
                 self.modalParts.scaleSelector.classList.remove('active');
-                self.modalParts.viewport.classList.remove('active');
                 self.modalParts.content.innerHTML = '';
                 self.preventScroll(false);
                 self.modalParts.content.style = '';
                 self.modalParts.frame.style = '';
                 self.modalParts.wrapper.style = '';
+                self.modalParts.viewport.classList.remove('active');
+                setTimeout(() => {
+                    self.modalParts.class.forEach(c => {
+                        self.modalParts.viewport.classList.remove(c);
+                    });
+                }, 250);
                 self.modalState = false;
                 resolve();
             });
@@ -919,6 +939,17 @@ class Radix {
      */
     typeJudge(obj) {
         return toString.call(obj).slice(8, -1).toLowerCase();
+    };
+    /**
+     * 文字列のTF判定
+     * @param {string}  str    判定したいもの
+     * @return {boolean}
+     */
+    str2bool(str) {
+        const trues = ['true', 'on', '1'];
+        if (str === true) return true;
+        if (trues.includes(String(str).toLocaleLowerCase())) return true;
+        return false;
     };
     /**
      * 少数の桁変換
