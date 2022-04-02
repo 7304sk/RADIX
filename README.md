@@ -16,7 +16,7 @@ javascript 本体（minify）
 
 ## License
 under MIT License  
-see [LICENSE.txt](https://radix.shoalwave.net/LICENSE)
+see [LICENSE](https://radix.shoalwave.net/LICENSE)
 
 ## Author
 shoalwave : shoalwave.dev@gmail.com

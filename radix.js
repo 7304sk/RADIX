@@ -1,7 +1,7 @@
 /************************************
 
     RADIX
-    - Version : 4.0.1
+    - Version : 4.0.2
 
     Copyright 2021 shoalwave and other contributors.
     Released under the MIT License.
@@ -630,7 +630,7 @@ class Radix {
             if (mode) {
                 e.style.overflowY = 'hidden';
             } else {
-                e.style.overflowY = 'auto';
+                e.style.overflowY = 'initial';
             }
         });
     };
