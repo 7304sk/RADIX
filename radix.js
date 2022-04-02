@@ -5,7 +5,7 @@
 
     Copyright 2021 shoalwave and other contributors.
     Released under the MIT License.
-    https://github.com/7304sk/RADIX/blob/main/LICENSE.txt
+    https://radix.shoalwave.net/LICENSE
 
 ************************************/
 /**
