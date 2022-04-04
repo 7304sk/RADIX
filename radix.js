@@ -1,7 +1,7 @@
 /************************************
 
     RADIX
-    - Version : 4.0.2
+    - Version : 4.0.3
 
     Copyright 2021 shoalwave and other contributors.
     Released under the MIT License.
@@ -120,6 +120,7 @@ class Radix {
         this.modalState = false;
         this.initialized = false;
         this.isMobile = typeof window.ontouchstart === "undefined" ? false : true;
+        this.DOM_ROOTS = document.querySelectorAll('html,body');
     }
     events = {
         beforeInitialize: new CustomEvent('_radixInit'),
@@ -151,7 +152,6 @@ class Radix {
         }).then(() => {
             // Speed 1
             return new Promise(resolve => {
-                self.DOM_ROOTS = document.querySelectorAll('html,body');
                 // preload display
                 if (self.option.preload.preventScroll) self.preventScroll(true);
                 let preloader = self.option.preload.selector.length > 0 ? document.querySelectorAll(self.option.preload.selector) : [];
@@ -367,15 +367,6 @@ class Radix {
                 // drag scroll
                 if (self.option.dragScroll.active && self.option.dragScroll.selector !== '') {
                     let dragScrollWrapper = Array.from(document.querySelectorAll(self.option.dragScroll.selector));
-                    let toggleHint = () => {
-                        let target = document.querySelector('[rdx-drag-on="true"]');
-                        if (target !== null) {
-                            let thisHint = target.querySelector('.rdx-drag-hint');
-                            if (thisHint !== null && (target.scrollLeft > 0 || target.scrollWidth === target.clientWidth)) {
-                                thisHint.classList.add('hide');
-                            }
-                        }
-                    };
                     let scrollHint = document.createElement('div');
                     scrollHint.classList.add('rdx-drag-hint');
                     let scrollHintInner = document.createElement('div');
@@ -383,17 +374,24 @@ class Radix {
                     scrollHint.appendChild(scrollHintInner);
                     scrollHintInner.innerHTML = '<div class="rdx-drag-hint-text">DRAG</div>';
                     scrollHintInner.prepend(self.icons.arrow_lr.cloneNode(true));
-
                     if (dragScrollWrapper.length > 0) {
                         dragScrollWrapper.forEach(e => {
                             e.style.overflow = 'auto';
                             e.style.position = 'relative';
                             e.addEventListener('mousedown', v => { self.dragDown(e, v) }, false);
-                            if (e.scrollWidth > e.clientWidth && self.option.dragScroll.hint) e.appendChild(scrollHint.cloneNode(true));
+                            if (e.scrollWidth > e.clientWidth && self.option.dragScroll.hint) {
+                                e.appendChild(scrollHint.cloneNode(true));
+                                e.addEventListener('scroll', () => {
+                                    let thisHint = e.querySelector('.rdx-drag-hint');
+                                    if (thisHint !== null) {
+                                        thisHint.classList.add('hide');
+                                    }
+                                });
+                            }
                         });
                     }
-                    document.addEventListener('touchmove', toggleHint, false);
-                    document.addEventListener('mousemove', v => { toggleHint; self.dragMove(v) }, false);
+                    document.addEventListener('touchmove', v => { self.dragMove(v) }, false);
+                    document.addEventListener('mousemove', v => { self.dragMove(v) }, false);
                     document.addEventListener('mouseup', v => { self.dragUp(v) }, false);
                 }
                 // flex fix
@@ -703,15 +701,16 @@ class Radix {
     };
     /**
      * SVG iconに置き換える
-     * @param {element} icon    SVGに置き換える対象
+     * @param {element} target      SVGに置き換える対象
+     * @param {element} iconName    アイコンの名前
      */
-    replaceIcon(target, icon) {
+    replaceIcon(target, iconName) {
         const self = this;
-        icon = icon === undefined ? target.innerText : icon;
-        if (Object.keys(self.icons).includes(icon)) {
-            target.replaceWith(self.icons[icon].cloneNode(true));
+        iconName = iconName === undefined ? target.innerText : iconName;
+        if (Object.keys(self.icons).includes(iconName)) {
+            target.replaceWith(self.icons[iconName].cloneNode(true));
         } else {
-            console.log('' + icon + ' is not icon name.');
+            console.log('' + iconName + ' is not icon name.');
         }
     };
     /**
@@ -952,10 +951,10 @@ class Radix {
         return false;
     };
     /**
-     * 少数の桁変換
-     * @param {float}   x        対象となる少数
+     * 小数の桁変換
+     * @param {float}   x        対象となる小数
      * @param {int}     digit    切り上げる小数点
-     * @return {string}          フィックスされた少数文字列
+     * @return {string}          フィックスされた小数文字列
      */
     floatRound(num, digit) {
         digit = digit === undefined ? 2 : Number.parseInt(digit);
