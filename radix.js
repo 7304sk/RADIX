@@ -820,11 +820,10 @@ class Radix {
                         self.modalParts.scale = self.option.modal.scaleStep[i];
                     }
                 }
-                const modalDrag = v => { self.dragDown(self.modalParts.wrapper, v) };
                 if (self.str2bool(self.modalParts.drag) && !self.str2bool(self.modalParts.wrap)) {
-                    self.modalParts.wrapper.addEventListener('mousedown', modalDrag, false);
+                    self.modalParts.wrapper.addEventListener('mousedown', self.modalParts.dragEvent, false);
                 } else {
-                    self.modalParts.wrapper.removeEventListener('mousedown', modalDrag, false);
+                    self.modalParts.wrapper.removeEventListener('mousedown', self.modalParts.dragEvent, false);
                 }
                 resolve();
             });
