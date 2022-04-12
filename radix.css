@@ -2,7 +2,7 @@
 /************************************
 
     RADIX
-    - Version : 4.0.3
+    - Version : 4.0.4
 
     Copyright 2021 shoalwave and other contributors.
     Released under the MIT License.
@@ -58,7 +58,8 @@ body {
 
 main {
     display: block;
-    flex-grow: 1
+    flex-grow: 1;
+    margin-bottom: auto;
 }
 
 /* formatting init style */
@@ -164,10 +165,6 @@ img.contain {
 }
 
 /* margin-bottom settings */
-main {
-    margin-bottom: auto;
-}
-
 main h1 {
     margin-bottom: var(--gutter)
 }
@@ -204,12 +201,10 @@ main ol {
     list-style-type: decimal
 }
 
-main table,
-main dl {
+main :where(table,dl,p,blockquote) {
     margin-bottom: var(--gutter)
 }
 
-main p,
 .mb {
     margin-bottom: var(--gutter)
 }

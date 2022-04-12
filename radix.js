@@ -1,7 +1,7 @@
 /************************************
 
     RADIX
-    - Version : 4.0.3
+    - Version : 4.0.4
 
     Copyright 2021 shoalwave and other contributors.
     Released under the MIT License.
@@ -483,6 +483,7 @@ class Radix {
                             },
                             class: self.option.modal.class,
                             drag: self.option.modal.drag,
+                            dragEvent: v => { self.dragDown(self.modalParts.wrapper, v) },
                             fit: self.option.modal.fit,
                             duration: self.option.modal.resizeDuration,
                             easing: self.option.modal.resizeEasing
