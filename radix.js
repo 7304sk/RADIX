@@ -60,7 +60,7 @@ class Radix {
                 duration: 600,
                 easing: 'easeInOutExpo'
             },
-            autoTargetBlank: {
+            fixExtLink: {
                 active: true
             },
             toggleNav: {
@@ -314,8 +314,8 @@ class Radix {
         }).then(() => {
             // Speed 2
             return new Promise(resolve => {
-                // Smooth scroll and Auto fill target blank
-                if (self.option.smoothScroll.active || self.option.autoTargetBlank.active) {
+                // Smooth scroll and Fix external links
+                if (self.option.smoothScroll.active || self.option.fixExtLink.active) {
                     const links = document.querySelectorAll('a');
                     let scrollFrom = null;
                     let scrollTo = null;
@@ -341,15 +341,17 @@ class Radix {
                             }
                         }
                         // Auto fill target blank
-                        if (self.option.autoTargetBlank.active) {
+                        if (self.option.fixExtLink.active) {
                             let host = null;
                             if (linkHref.match(/.+\.pdf$/)) {
                                 link.setAttribute('target', '_blank');
+                                link.setAttribute('rel', 'noopener');
                                 link.classList.add('rdx-pdf');
                             } else if (linkHref.match(/^http/)) {
                                 host = window.location.hostname;
                                 if (host === '' || linkHref.indexOf(host) < 0) {
                                     link.setAttribute('target', '_blank');
+                                    link.setAttribute('rel', 'noopener');
                                     link.classList.add('rdx-extlink');
                                 }
                             }
