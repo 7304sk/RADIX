@@ -40,8 +40,7 @@ html {
     font-weight: 400;
     line-height: 1.4
 }
-
-p {line-height: 1.8}
+main :where(p,pre,ul,ol,dl,table,blockquote) {line-height: 1.8}
 
 /* fix display height */
 body {
@@ -134,6 +133,8 @@ img {
 }
 img.contain {object-fit: contain}
 
+hr {border-top: 2px solid var(--textColor)}
+
 /* Content interval settings */
 main :where(*)+h1 {
     --theGutter:  calc(var(--gutter) * 3);
@@ -165,11 +166,12 @@ main :where(h1,h2,h3)+h4 {--theGutter: var(--gutter)}
 main :where(h1,h2,h3,h4)+h5 {--theGutter: var(--gutter)}
 main :where(h1,h2,h3,h4,h5)+h6 {--theGutter: var(--gutter)}
 
-main :where(*)+:where(p,pre,ul,ol,table,dl,blockquote,figure) {
+main :where(*)+:where(p,pre,ul,ol,dl,table,blockquote,figure,form,hr,iframe) {
     --theGutter:  var(--gutter);
     margin-block-start: var(--theGutter);
 }
-main :where(article,section)>:where(*)+:where(div), main>:where(*)+:where(div) {
+main :where(article,section)>:where(*)+:where(*),
+main.fb-brackets>:where(*)+:where(:not(article,section,aside)) {
     --theGutter:  var(--gutter);
     margin-block-start: var(--theGutter);
 }
