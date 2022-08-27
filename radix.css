@@ -263,6 +263,7 @@ main :where(*)+:where(article,section) {margin-block-start: calc(var(--gap))}
 
     * {
         -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
         font-family: "Hiragino Kaku Gothic Pro", Meiryo, Osaka, "MS PGothic", "sans-serif";
     }
 
