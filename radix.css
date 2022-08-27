@@ -2,7 +2,7 @@
 /************************************
 
     RADIX
-    - Version : 4.0.6
+    - Version : 4.1.0
 
     Copyright 2021 shoalwave and other contributors.
     Released under the MIT License.
@@ -13,8 +13,8 @@
     --fontSize: 16px;
     --linkColor: #3562a0;
     --textColor: #333;
-    --gutter: 1.3rem; /* spacing of paragraph. */
-    --gap: 3rem; /* spacing of sections. */
+    --gutter: 1rem; /* spacing of paragraph. */
+    --gap: 3rem;
     --spacing: 1rem; /* minimum spacing between content area and viewport. */
     --contentWidth: 1000px;
 }
@@ -24,9 +24,7 @@
     all: unset;
     display: revert;
 }
-*,
-*:before,
-*:after {
+*, *:before, *:after {
     box-sizing: border-box;
 }
 
@@ -43,9 +41,7 @@ html {
     line-height: 1.4
 }
 
-p {
-    line-height: 1.8
-}
+p {line-height: 1.8}
 
 /* fix display height */
 body {
@@ -68,55 +64,42 @@ a {
     text-decoration: none;
     cursor: pointer
 }
+a:hover {text-decoration: underline}
 
-a:hover {
-    text-decoration: underline
-}
-
-ul,
-ol {
-    list-style-type: none
-}
-
-ul.disc,
-ol.disc {
+ul, ol {list-style-type: none}
+ul.disc, ol.disc {
     padding-left: 1.5em;
     list-style-type: disc
 }
-
-ul.circle,
-ol.circle {
+ul.circle, ol.circle {
     padding-left: 1.5em;
     list-style-type: circle
 }
-
-ul.square,
-ol.square {
+ul.square, ol.square {
     padding-left: 1.5em;
     list-style-type: square
 }
-
-ul.decimal,
-ol.decimal {
+ul.decimal, ol.decimal {
+    padding-left: 1.5em;
+    list-style-type: decimal
+}
+ul.decimal-lz, ol.decimal-lz {
+    padding-left: 2.5em;
+    list-style-type: decimal-leading-zero
+}
+main ul {
+    padding-left: 1.5em;
+    list-style-type: disc
+}
+main ol {
     padding-left: 1.5em;
     list-style-type: decimal
 }
 
-ul.decimal-lz,
-ol.decimal-lz {
-    padding-left: 2.5em;
-    list-style-type: decimal-leading-zero
-}
-
-blockquote,
-q {
+blockquote, q {
     quotes: none
 }
-
-blockquote:before,
-blockquote:after,
-q:before,
-q:after {
+blockquote:before, blockquote:after, q:before, q:after {
     content: '';
     content: none
 }
@@ -125,19 +108,13 @@ sup {
     font-size: 0.5em;
     vertical-align: super
 }
-
 sub {
     font-size: 0.5em;
     vertical-align: sub
 }
 
-strong {
-    font-weight: bolder
-}
-
-em {
-    font-weight: 700
-}
+strong {font-weight: bolder}
+em {font-weight: 700}
 
 table {
     width: max-content;
@@ -149,93 +126,72 @@ button {
     cursor: pointer
 }
 
-section {
-    margin-bottom: var(--gap)
-}
-
 img {
     display: block;
     object-fit: cover;
     max-width: 100%;
     flex-shrink: 0
 }
+img.contain {object-fit: contain}
 
-img.contain {
-    object-fit: contain
+/* Content interval settings */
+main :where(*)+h1 {
+    --theGutter:  calc(var(--gutter) * 3);
+    margin-block-start: var(--theGutter);
 }
+main :where(*)+h2 {
+    --theGutter:  calc(var(--gutter) * 2.5);
+    margin-block-start: var(--theGutter);
+}
+main :where(*)+h3 {
+    --theGutter:  calc(var(--gutter) * 2);
+    margin-block-start: var(--theGutter);
+}
+main :where(*)+h4 {
+    --theGutter:  calc(var(--gutter) * 1.5);
+    margin-block-start: var(--theGutter);
+}
+main :where(*)+h5 {
+    --theGutter:  calc(var(--gutter) * 1.3);
+    margin-block-start: var(--theGutter);
+}
+main :where(*)+h6 {
+    --theGutter:  calc(var(--gutter) * 1);
+    margin-block-start: var(--theGutter);
+}
+main :where(h1)+h2 {--theGutter: var(--gutter)}
+main :where(h1,h2)+h3 {--theGutter: var(--gutter)}
+main :where(h1,h2,h3)+h4 {--theGutter: var(--gutter)}
+main :where(h1,h2,h3,h4)+h5 {--theGutter: var(--gutter)}
+main :where(h1,h2,h3,h4,h5)+h6 {--theGutter: var(--gutter)}
 
-/* margin-bottom settings */
-main h1 {
-    margin-bottom: var(--gutter)
+main :where(*)+:where(p,pre,ul,ol,table,dl,blockquote,figure) {
+    --theGutter:  var(--gutter);
+    margin-block-start: var(--theGutter);
 }
+main :where(article,section)>:where(*)+:where(div), main>:where(*)+:where(div) {
+    --theGutter:  var(--gutter);
+    margin-block-start: var(--theGutter);
+}
+main :where(*)+:where(article,section) {margin-block-start: calc(var(--gap))}
 
-main h2 {
-    margin-bottom: calc(var(--gutter) - .3rem)
-}
+.mb {margin-bottom: var(--gutter)}
+.mb0 {margin-bottom: 0}
+.mb_ {margin-bottom: .5rem}
+.mb1 {margin-bottom: 1rem}
+.mb1_ {margin-bottom: 1.5rem}
+.mb2 {margin-bottom: 2rem}
+.mb2_ {margin-bottom: 2.5rem}
+.mb3 {margin-bottom: 3rem}
 
-main h3 {
-    margin-bottom: calc(var(--gutter) - .5rem)
-}
-
-main h4 {
-    margin-bottom: calc(var(--gutter) - .7rem)
-}
-
-main h5 {
-    margin-bottom: calc(var(--gutter) - .7rem)
-}
-
-main h6 {
-    margin-bottom: calc(var(--gutter) - .7rem)
-}
-
-main ul {
-    padding-left: 1.5em;
-    margin-bottom: var(--gutter);
-    list-style-type: disc
-}
-
-main ol {
-    padding-left: 1.5em;
-    margin-bottom: var(--gutter);
-    list-style-type: decimal
-}
-
-main :where(table,dl,p,blockquote) {
-    margin-bottom: var(--gutter)
-}
-
-.mb {
-    margin-bottom: var(--gutter)
-}
-
-.mb0 {
-    margin-bottom: 0
-}
-
-.mb_ {
-    margin-bottom: .5rem
-}
-
-.mb1 {
-    margin-bottom: 1rem
-}
-
-.mb1_ {
-    margin-bottom: 1.5rem
-}
-
-.mb2 {
-    margin-bottom: 2rem
-}
-
-.mb2_ {
-    margin-bottom: 2.5rem
-}
-
-.mb3 {
-    margin-bottom: 3rem
-}
+.mt {margin-top: var(--gutter)}
+.mt0 {margin-top: 0}
+.mt_ {margin-top: .5rem}
+.mt1 {margin-top: 1rem}
+.mt1_ {margin-top: 1.5rem}
+.mt2 {margin-top: 2rem}
+.mt2_ {margin-top: 2.5rem}
+.mt3 {margin-top: 3rem}
 
 /* unique style */
 .clearfix:after {
@@ -258,29 +214,20 @@ main :where(table,dl,p,blockquote) {
     grid-auto-rows: max-content;
     width: 100%;
 }
-
-.fb-brackets>*:not(.full-bleed) {
-    grid-column: 3
-}
-
-.fb-brackets>.full-bleed {
-    grid-column: 1/-1
-}
+.fb-brackets>*:not(.full-bleed) {grid-column: 3}
+.fb-brackets>.full-bleed {grid-column: 1/-1}
 
 .hide {
     visibility: hidden;
     opacity: 0
 }
-
 .visible {
     visibility: visible;
     opacity: 1
 }
-
 .radix-modal-visible:not(.rdx-modal-item) {
     display: none !important
 }
-
 .none {
     display: none !important
 }
@@ -291,17 +238,9 @@ main :where(table,dl,p,blockquote) {
     height: 100%
 }
 
-.text-center {
-    text-align: center
-}
-
-.text-right {
-    text-align: right
-}
-
-.text-left {
-    text-align: left
-}
+.text-center {text-align: center}
+.text-right {text-align: right}
+.text-left {text-align: left}
 
 .text-unit {
     display: inline-block;
@@ -324,7 +263,7 @@ main :where(table,dl,p,blockquote) {
 
     * {
         -webkit-print-color-adjust: exact;
-        font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", "sans-serif";
+        font-family: "Hiragino Kaku Gothic Pro", Meiryo, Osaka, "MS PGothic", "sans-serif";
     }
 
     body {
@@ -360,7 +299,6 @@ main :where(table,dl,p,blockquote) {
 .rdx-scroll-appear {
     transition: .5s ease-out;
 }
-
 .rdx-scroll-appear:not(.active) {
     opacity: 0;
     transform: scale(.9) translateY(-5.56%);
@@ -372,10 +310,7 @@ main :where(table,dl,p,blockquote) {
     height: 1.2em;
     vertical-align: sub;
 }
-
-.rdx-icon-hamburger .bar1,
-.rdx-icon-hamburger .bar2,
-.rdx-icon-hamburger .bar3 {
+.rdx-icon-hamburger .bar1, .rdx-icon-hamburger .bar2, .rdx-icon-hamburger .bar3 {
     stroke-linecap: butt;
     stroke-linejoin: miter;
     stroke-width: 4px;
@@ -384,18 +319,9 @@ main :where(table,dl,p,blockquote) {
     transform: rotate(0);
     opacity: 1;
 }
-
-.opened .rdx-icon-hamburger .bar1 {
-    transform: rotate(45deg) scale(1.2) translate(10%, -27%);
-}
-
-.opened .rdx-icon-hamburger .bar2 {
-    opacity: 0;
-}
-
-.opened .rdx-icon-hamburger .bar3 {
-    transform: rotate(-45deg) scale(1.2) translate(-50%, -15%);
-}
+.opened .rdx-icon-hamburger .bar1 {transform: rotate(45deg) scale(1.2) translate(10%, -27%)}
+.opened .rdx-icon-hamburger .bar2 {opacity: 0}
+.opened .rdx-icon-hamburger .bar3 {transform: rotate(-45deg) scale(1.2) translate(-50%, -15%)}
 
 /* drag scroll */
 @keyframes rdx-drag-hint {
@@ -406,7 +332,6 @@ main :where(table,dl,p,blockquote) {
     20% { transform: translate(7%) }
     25% { transform: translate(0) }
 }
-
 .rdx-drag-hint {
     display: grid;
     width: 100%;
@@ -419,7 +344,6 @@ main :where(table,dl,p,blockquote) {
     background: rgba(0, 0, 0, 0.3);
     transition: .3s;
 }
-
 .rdx-drag-hint-inner {
     display: flex;
     flex-direction: column;
@@ -431,11 +355,7 @@ main :where(table,dl,p,blockquote) {
     animation: rdx-drag-hint 2s infinite linear;
     animation-delay: 1s;
 }
-
-.rdx-drag-hint .radix-icon {
-    height: auto;
-}
-
+.rdx-drag-hint .radix-icon {height: auto}
 .rdx-drag-hint .rdx-drag-hint-text {
     padding: 0 .8rem;
     font-size: 1.5em;
@@ -484,19 +404,16 @@ main :where(table,dl,p,blockquote) {
     --rmv-light: rgba(0, 0, 0, .3);
     --rmv-dark: rgba(255, 255, 255, .3);
 }
-
 .rdx-modal-viewport.active {
     opacity: 1;
     visibility: visible;
 }
-
 .rdx-modal-area {
     display: grid;
     place-items: center;
     width: 100%;
     height: 100%;
 }
-
 .rdx-modal-toggles {
     display: flex;
     position: absolute;
@@ -507,26 +424,21 @@ main :where(table,dl,p,blockquote) {
     color: var(--rmv-text-color);
     transition: .4s ease-out;
 }
-
 .rdx-modal-viewport.active .rdx-modal-toggles {
     transform: translateY(0);
     opacity: 1;
 }
-
 .rdx-modal-magnifier {
     display: flex;
     align-items: center;
     gap: .5em;
     position: relative;
 }
-
-.rdx-modal-enlarge,
-.rdx-modal-shrink {
+.rdx-modal-enlarge, .rdx-modal-shrink {
     display: block;
     font-size: 2em;
     cursor: pointer;
 }
-
 .rdx-modal-scale {
     display: grid;
     place-items: center;
@@ -539,10 +451,7 @@ main :where(table,dl,p,blockquote) {
     line-height: 1;
     cursor: pointer;
 }
-.rdx-modal-scale:hover {
-    background: var(--rmv-light);
-}
-
+.rdx-modal-scale:hover {background: var(--rmv-light)}
 .rdx-modal-scaler {
     display: block;
     height: 100%;
@@ -558,12 +467,10 @@ main :where(table,dl,p,blockquote) {
     visibility: hidden;
     transition: .1s ease-in;
 }
-
 .rdx-modal-scaler.active {
     opacity: 1;
     visibility: visible;
 }
-
 .rdx-modal-scaler li {
     display: grid;
     height: 40px;
@@ -574,61 +481,36 @@ main :where(table,dl,p,blockquote) {
     line-height: 1;
     cursor: pointer;
 }
-.rdx-modal-scaler li:hover {
-    background: var(--rmv-dark);
-}
-
+.rdx-modal-scaler li:hover {background: var(--rmv-dark)}
 .rdx-modal-close {
     height: 3em;
     width: 3em;
     margin: 1em;
     cursor: pointer
 }
-
 .rdx-modal-wrapper {
     display: grid;
     max-width: 100%;
     max-height: 100%;
     overflow: auto;
 }
-
-.rdx-modal-wrapper::-webkit-scrollbar {
-    width: 7px
-}
-
-.rdx-modal-wrapper::-webkit-scrollbar:horizontal {
-    height: 7px
-}
-
+.rdx-modal-wrapper::-webkit-scrollbar {width: 7px}
+.rdx-modal-wrapper::-webkit-scrollbar:horizontal {height: 7px}
 .rdx-modal-wrapper::-webkit-scrollbar-track {
     border-radius: 5px;
     box-shadow: inset 0 0 6px rgba(0, 0, 0, .2);
 }
-
 .rdx-modal-wrapper::-webkit-scrollbar-thumb {
     background-color: #777;
     border-radius: 5px;
 }
-
-.rdx-modal-wrapper::-webkit-scrollbar-corner {
-    background: transparent;
-}
-
-.rdx-modal-frame {
-    overflow: hidden;
-}
-
+.rdx-modal-wrapper::-webkit-scrollbar-corner {background: transparent}
+.rdx-modal-frame {overflow: hidden}
 .rdx-modal-content {
     width: max-content;
     height: max-content;
     cursor: default;
     transform-origin: top left;
 }
-
-.rdx-modal-content > img.rdx-modal-item {
-    display: block;
-}
-
-.rdx-modal-source {
-    cursor: pointer;
-}
+.rdx-modal-content > img.rdx-modal-item {display: block}
+.rdx-modal-source {cursor: pointer}
