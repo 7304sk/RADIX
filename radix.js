@@ -1,7 +1,7 @@
 /************************************
 
     RADIX
-    - Version : 4.1.0
+    - Version : 4.1.1
 
     Copyright 2021 shoalwave and other contributors.
     Released under the MIT License.
