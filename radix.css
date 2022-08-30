@@ -133,7 +133,12 @@ img {
 }
 img.contain {object-fit: contain}
 
-hr {border-top: 2px solid var(--textColor)}
+hr {
+    width: 60%;
+    border: none;
+    border-top: 2px solid var(--textColor);
+    margin: var(--gap) 0;
+}
 
 /* Content interval settings */
 main :where(*)+h1 {
@@ -171,7 +176,7 @@ main :where(*)+:where(p,pre,ul,ol,dl,table,blockquote,figure,form,hr,iframe) {
     margin-block-start: var(--theGutter);
 }
 main :where(article,section)>:where(*)+:where(*),
-main.fb-brackets>:where(*)+:where(:not(article,section,aside)) {
+main.fb-brackets>:where(*)+:where(:not(article,section,aside,h1,h2,h3,h4,h5,h6)) {
     --theGutter:  var(--gutter);
     margin-block-start: var(--theGutter);
 }
