@@ -1,7 +1,7 @@
 /************************************
 
     RADIX
-    - Version : 4.1.1
+    - Version : 4.1.2
 
     Copyright 2021 shoalwave and other contributors.
     Released under the MIT License.
@@ -38,8 +38,8 @@
  */
 let DOMLoaded = false;
 let windowLoaded = false;
-window.addEventListener('DOMContentLoaded',() => {DOMLoaded = true});
-window.addEventListener('load',() => {windowLoaded = true});
+window.addEventListener('DOMContentLoaded', () => { DOMLoaded = true });
+window.addEventListener('load', () => { windowLoaded = true });
 class Radix {
     /**
      * コンストラクタ
@@ -58,7 +58,8 @@ class Radix {
             smoothScroll: {
                 active: true,
                 duration: 600,
-                easing: 'easeInOutExpo'
+                easing: 'easeInOutExpo',
+                header: '',
             },
             fixExtLink: {
                 active: true
@@ -121,20 +122,20 @@ class Radix {
         this.initialized = false;
         this.isMobile = typeof window.ontouchstart === "undefined" ? false : true;
         this.DOM_ROOTS = document.querySelectorAll('html,body');
-    }
-    events = {
-        beforeInitialize: new CustomEvent('_radixInit'),
-        afterInitialize: new CustomEvent('radixInit_'),
-        beforeScroll: new CustomEvent('_radixScroll'),
-        afterScroll: new CustomEvent('radixScroll_'),
-        beforeNavOpen: new CustomEvent('_radixNavOpen'),
-        afterNavOpen: new CustomEvent('radixNavOpen_'),
-        beforeNavClose: new CustomEvent('_radixNavClose'),
-        afterNavClose: new CustomEvent('radixNavClose_'),
-        beforeModalOpen: new CustomEvent('_radixModalOpen'),
-        afterModalOpen: new CustomEvent('radixModalOpen_'),
-        beforeModalClose: new CustomEvent('_radixModalClose'),
-        afterModalClose: new CustomEvent('radixModalClose_'),
+        this.events = {
+            beforeInitialize: new CustomEvent('_radixInit'),
+            afterInitialize: new CustomEvent('radixInit_'),
+            beforeScroll: new CustomEvent('_radixScroll'),
+            afterScroll: new CustomEvent('radixScroll_'),
+            beforeNavOpen: new CustomEvent('_radixNavOpen'),
+            afterNavOpen: new CustomEvent('radixNavOpen_'),
+            beforeNavClose: new CustomEvent('_radixNavClose'),
+            afterNavClose: new CustomEvent('radixNavClose_'),
+            beforeModalOpen: new CustomEvent('_radixModalOpen'),
+            afterModalOpen: new CustomEvent('radixModalOpen_'),
+            beforeModalClose: new CustomEvent('_radixModalClose'),
+            afterModalClose: new CustomEvent('radixModalClose_'),
+        }
     }
     /**
      * DOMロード時に実行し初期化する関数
@@ -252,7 +253,7 @@ class Radix {
                         svgIcon.setAttribute('viewBox', iconData.viewbox);
                         svgIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
                         svgIcon.classList.add('radix-icon');
-                        svgIcon.classList.add('rdx-icon-'+iconName);
+                        svgIcon.classList.add('rdx-icon-' + iconName);
                         let iconPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                         iconPath.setAttribute('d', iconData.path);
                         if (iconData.fill) {
@@ -334,8 +335,11 @@ class Radix {
                                     const target = hrefTarget.length > 0 ? document.getElementById(hrefTarget) : document.body;
                                     const uniqueEasing = link.dataset.scrollEasing;
                                     const uniqueDuration = link.dataset.scrollDuration;
+                                    const headerElm = !self.option.smoothScroll.header ? null : document.querySelector(self.option.smoothScroll.header);
+                                    const headerFixed = headerElm ? window.getComputedStyle(headerElm).getPropertyValue('position') : null;
+                                    const headerHeight = headerFixed === 'fixed' ? headerElm.offsetHeight : 0;
                                     scrollFrom = window.scrollY;
-                                    scrollTo = window.scrollY + target.getBoundingClientRect().top;
+                                    scrollTo = window.scrollY + target.getBoundingClientRect().top - headerHeight;
                                     self.smoothScroll(scrollFrom, scrollTo, uniqueDuration, uniqueEasing);
                                 });
                             }
@@ -405,7 +409,7 @@ class Radix {
                             let childArr = Array.from(e.children);
                             let dummyChild = childArr[0].cloneNode(inherit);
                             dummyChild.classList.add('rdx-dummy-item');
-                            let count = self.option.flexFix.min > childArr.length ? self.option.flexFix.min: childArr.length;
+                            let count = self.option.flexFix.min > childArr.length ? self.option.flexFix.min : childArr.length;
                             for (let i = 0; i < count; i++) {
                                 let dummyClone = dummyChild.cloneNode(inherit);
                                 e.appendChild(dummyClone);
@@ -424,7 +428,7 @@ class Radix {
                             let windowHeight = window.innerHeight;
                             appearItems.forEach(appearItem => {
                                 let resetFlg = appearItem.hasAttribute('data-appear-reset') ? appearItem.dataset.appearReset : self.option.scrollAppear.reset;
-                                let activeClass = appearItem.hasAttribute('data-appear-class') ?  appearItem.dataset.appearClass : self.option.scrollAppear.class;
+                                let activeClass = appearItem.hasAttribute('data-appear-class') ? appearItem.dataset.appearClass : self.option.scrollAppear.class;
                                 let delay = appearItem.hasAttribute('data-appear-delay') ? appearItem.dataset.appearDelay : self.option.scrollAppear.delay;
                                 let modeNum = appearItem.hasAttribute('data-appear-fixed') ? appearItem.dataset.appearFixed : null;
 
@@ -535,14 +539,14 @@ class Radix {
                         self.modalParts.enlarge.addEventListener('click', event => {
                             event.preventDefault();
                             let i = self.option.modal.scaleStep.indexOf(self.modalParts.scale);
-                            let aftScale = i < self.option.modal.scaleStep.length - 1 ? self.option.modal.scaleStep[i+1] : self.option.modal.scaleStep[i];
+                            let aftScale = i < self.option.modal.scaleStep.length - 1 ? self.option.modal.scaleStep[i + 1] : self.option.modal.scaleStep[i];
                             self.modalResize(aftScale);
                             self.modalParts.scale = aftScale;
                         });
                         self.modalParts.shrink.addEventListener('click', event => {
                             event.preventDefault();
                             let i = self.option.modal.scaleStep.indexOf(self.modalParts.scale);
-                            let aftScale = i > 0 ? self.option.modal.scaleStep[i-1] : self.option.modal.scaleStep[i];
+                            let aftScale = i > 0 ? self.option.modal.scaleStep[i - 1] : self.option.modal.scaleStep[i];
                             self.modalResize(aftScale);
                             self.modalParts.scale = aftScale;
                         });
@@ -580,7 +584,7 @@ class Radix {
                                 }
                             }
                         }, false);
-                        self.modalParts.closeButton.addEventListener('click', () => {self.modalClose()}, false);
+                        self.modalParts.closeButton.addEventListener('click', () => { self.modalClose() }, false);
                     }
                 }
                 resolve();
@@ -652,10 +656,10 @@ class Radix {
                 }
                 self.navState = false;
                 toggleTrigger.forEach(t => {
-                        t.classList.remove(self.option.toggleNav.class);
+                    t.classList.remove(self.option.toggleNav.class);
                 });
                 toggleTarget.forEach(t => {
-                        t.classList.remove(self.option.toggleNav.class);
+                    t.classList.remove(self.option.toggleNav.class);
                 });
                 document.dispatchEvent(self.events.afterNavClose);
             } else {
@@ -665,10 +669,10 @@ class Radix {
                 }
                 self.navState = true;
                 toggleTrigger.forEach(t => {
-                        t.classList.add(self.option.toggleNav.class);
+                    t.classList.add(self.option.toggleNav.class);
                 });
                 toggleTarget.forEach(t => {
-                        t.classList.add(self.option.toggleNav.class);
+                    t.classList.add(self.option.toggleNav.class);
                 });
                 document.dispatchEvent(self.events.afterNavOpen);
             }
@@ -680,10 +684,10 @@ class Radix {
                 }
                 self.navState = false;
                 toggleTrigger.forEach(t => {
-                        t.classList.remove(self.option.toggleNav.class);
+                    t.classList.remove(self.option.toggleNav.class);
                 });
                 toggleTarget.forEach(t => {
-                        t.classList.remove(self.option.toggleNav.class);
+                    t.classList.remove(self.option.toggleNav.class);
                 });
                 document.dispatchEvent(self.events.afterNavClose);
             } else if (mode === false || mode === 'open') {
@@ -693,10 +697,10 @@ class Radix {
                 }
                 self.navState = true;
                 toggleTrigger.forEach(t => {
-                        t.classList.add(self.option.toggleNav.class);
+                    t.classList.add(self.option.toggleNav.class);
                 });
                 toggleTarget.forEach(t => {
-                        t.classList.add(self.option.toggleNav.class);
+                    t.classList.add(self.option.toggleNav.class);
                 });
                 document.dispatchEvent(self.events.afterNavOpen);
             }
@@ -722,7 +726,7 @@ class Radix {
      * @param {event}  v    マウスダウンイベント
      */
     dragDown(e, v) {
-        if(!self.isMobile) {
+        if (!self.isMobile) {
             e.style.cursor = 'move';
             e.setAttribute('rdx-drag-on', true);
             e.setAttribute('rdx-drag-scrolled-x', e.scrollLeft);
@@ -861,8 +865,8 @@ class Radix {
         if (!self.modalState) return;
         if (self.modalParts.wrapper.getAttribute('rdx-drag-on') === 'true') return;
         new Promise(resolve => {
-                document.dispatchEvent(self.events.beforeModalClose);
-                resolve();
+            document.dispatchEvent(self.events.beforeModalClose);
+            resolve();
         }).then(() => {
             return new Promise(resolve => {
                 self.modalParts.scaleSelector.classList.remove('active');
