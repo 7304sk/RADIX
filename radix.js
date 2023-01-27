@@ -8,6 +8,12 @@
     https://radix.shoalwave.net/LICENSE
 
 ************************************/
+
+let DOMLoaded = false;
+let windowLoaded = false;
+window.addEventListener('DOMContentLoaded', () => { DOMLoaded = true });
+window.addEventListener('load', () => { windowLoaded = true });
+
 /**
  * 本体クラス
  * @typedef radix
@@ -36,10 +42,6 @@
  * @property {function} preventScroll  ページ全体の縦方向スクロール禁止を操作する関数
  * @property {function} getEasing      イージング関数を取得する関数
  */
-let DOMLoaded = false;
-let windowLoaded = false;
-window.addEventListener('DOMContentLoaded', () => { DOMLoaded = true });
-window.addEventListener('load', () => { windowLoaded = true });
 class Radix {
     /**
      * コンストラクタ
