@@ -1,7 +1,7 @@
 /************************************
 
     RADIX
-    - Version : 4.1.3
+    - Version : 4.1.4
 
     Copyright 2021 shoalwave and other contributors.
     Released under the MIT License.
@@ -156,29 +156,31 @@ class Radix {
             // Speed 1
             return new Promise(resolve => {
                 // preload display
-                if (self.option.preload.preventScroll) self.preventScroll(true);
-                let preloader = self.option.preload.selector.length > 0 ? document.querySelectorAll(self.option.preload.selector) : [];
-                window.addEventListener('load', () => {
-                    if (self.option.preload.active && preloader && self.initialized) {
-                        setTimeout(() => {
-                            if (self.option.preload.preventScroll) self.preventScroll(false);
-                            preloader.forEach(pl => {
-                                pl.classList.add(self.option.preload.class);
-                            });
-                        }, self.option.preload.delay);
-                    }
-                });
-                document.addEventListener('radixInit_', () => {
-                    self.initialized = true;
-                    if (self.option.preload.active && preloader.length > 0 && windowLoaded) {
-                        setTimeout(() => {
-                            if (self.option.preload.preventScroll) self.preventScroll(false);
-                            preloader.forEach(pl => {
-                                pl.classList.add(self.option.preload.class);
-                            });
-                        }, self.option.preload.delay);
-                    }
-                });
+                if (self.option.preload.active) {
+                    if (self.option.preload.preventScroll) self.preventScroll(true);
+                    let preloader = self.option.preload.selector.length > 0 ? document.querySelectorAll(self.option.preload.selector) : [];
+                    window.addEventListener('load', () => {
+                        if (self.option.preload.active && preloader && self.initialized) {
+                            setTimeout(() => {
+                                if (self.option.preload.preventScroll) self.preventScroll(false);
+                                preloader.forEach(pl => {
+                                    pl.classList.add(self.option.preload.class);
+                                });
+                            }, self.option.preload.delay);
+                        }
+                    });
+                    document.addEventListener('radixInit_', () => {
+                        self.initialized = true;
+                        if (self.option.preload.active && preloader.length > 0 && windowLoaded) {
+                            setTimeout(() => {
+                                if (self.option.preload.preventScroll) self.preventScroll(false);
+                                preloader.forEach(pl => {
+                                    pl.classList.add(self.option.preload.class);
+                                });
+                            }, self.option.preload.delay);
+                        }
+                    });
+                }
                 // SVG insert
                 if (self.option.icons.active) {
                     const iconSources = {
