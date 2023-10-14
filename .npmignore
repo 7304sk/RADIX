@@ -1,4 +1,6 @@
 # .npmignore
+/.vim/
+/.vim/*
 /icons/
 /icons/*
 /LICENSE
