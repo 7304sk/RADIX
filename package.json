@@ -1,6 +1,6 @@
 {
   "name": "radix-library",
-  "version": "4.1.3",
+  "version": "4.1.4",
   "description": "CSS and Javascript library to initialize pages.",
   "main": "radix.js",
   "scripts": {
