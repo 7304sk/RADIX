@@ -1,7 +1,7 @@
 /************************************
 
     RADIX
-    - Version : 4.1.5
+    - Version : 4.1.8
 
     Copyright 2021 shoalwave and other contributors.
     Released under the MIT License.
@@ -48,7 +48,7 @@ class Radix {
      * @constructor
      */
     constructor(option, mode) {
-        this.radixVer = '4.1.5'
+        this.version = '4.1.8'
         const defOption = {
             timeFrame: 10,
             preload: {
