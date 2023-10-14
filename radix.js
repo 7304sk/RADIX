@@ -1,7 +1,7 @@
 /************************************
 
     RADIX
-    - Version : 4.1.4
+    - Version : 4.1.5
 
     Copyright 2021 shoalwave and other contributors.
     Released under the MIT License.
@@ -48,6 +48,7 @@ class Radix {
      * @constructor
      */
     constructor(option, mode) {
+        this.radixVer = '4.1.5'
         const defOption = {
             timeFrame: 10,
             preload: {
@@ -357,7 +358,8 @@ class Radix {
                                 link.classList.add('rdx-pdf');
                             } else if (linkHref.match(/^http/)) {
                                 host = window.location.hostname;
-                                if (host === '' || linkHref.indexOf(host) < 0) {
+                                const linkHost = linkHref.replace(/\\/g, '/').match(/\/\/([^/]*)/)
+                                if (host === '' || !!linkHost && linkHost[1] !== host) {
                                     link.setAttribute('target', '_blank');
                                     link.setAttribute('rel', 'noopener');
                                     link.classList.add('rdx-extlink');
